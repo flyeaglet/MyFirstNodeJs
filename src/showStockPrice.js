@@ -3,6 +3,18 @@ import './App.css'
 import ReactEcharts from 'echarts-for-react';
 import axios from 'axios'
 
+import PropTypes from 'prop-types';
+import classNames from 'classnames';
+import Select from 'react-select';
+import { withStyles } from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
+import NoSsr from '@material-ui/core/NoSsr';
+import TextField from '@material-ui/core/TextField';
+import Chip from '@material-ui/core/Chip';
+import MenuItem from '@material-ui/core/MenuItem';
+import { emphasize } from '@material-ui/core/styles/colorManipulator';
+
+
 var instance = axios.create({
   baseURL: 'http://59.126.125.77:8000'
 });
@@ -22,27 +34,196 @@ var line_chart_list = {
     smooth: true
   }]
 };
-var stock_no;
+var stock_no = "";
 var list_type = "1_month";
+
+
+//取得股票清單
+var stock_list = [];
+
+const styles = theme => ({
+  root: {
+    flexGrow: 1,
+    height: 250,
+  },
+  input: {
+    display: 'flex',
+    padding: 0,
+  },
+  valueContainer: {
+    display: 'flex',
+    flex: 1,
+    alignItems: 'center',
+  },
+  chip: {
+    margin: `${theme.spacing.unit / 2}px ${theme.spacing.unit / 4}px`,
+  },
+  chipFocused: {
+    backgroundColor: emphasize(
+      theme.palette.type === 'light' ? theme.palette.grey[300] : theme.palette.grey[700],
+      0.08,
+    ),
+  },
+  noOptionsMessage: {
+    fontSize: 16,
+    padding: `${theme.spacing.unit}px ${theme.spacing.unit * 2}px`,
+  },
+  singleValue: {
+    fontSize: 16,
+  },
+  placeholder: {
+    position: 'absolute',
+    left: 2,
+    fontSize: 16,
+  },
+});
+
+function NoOptionsMessage(props) {
+  return (
+    <Typography
+      color="textSecondary"
+      className={props.selectProps.classes.noOptionsMessage}
+      {...props.innerProps}
+    >
+      {props.children}
+    </Typography>
+  );
+}
+
+function inputComponent({ inputRef, ...props }) {
+  return <div ref={inputRef} {...props} />;
+}
+
+function Control(props) {
+  return (
+    <TextField
+      fullWidth
+      InputProps={{
+        inputComponent,
+        inputProps: {
+          className: props.selectProps.classes.input,
+          ref: props.innerRef,
+          children: props.children,
+          ...props.innerProps,
+        },
+      }}
+    />
+  );
+}
+
+function Option(props) {
+  return (
+    <MenuItem
+      buttonRef={props.innerRef}
+      selected={props.isFocused}
+      component="div"
+      style={{
+        fontWeight: props.isSelected ? 500 : 400,
+      }}
+      {...props.innerProps}
+    >
+      {props.children}
+    </MenuItem>
+  );
+}
+
+function Placeholder(props) {
+  return (
+    <Typography
+      color="textSecondary"
+      className={props.selectProps.classes.placeholder}
+      {...props.innerProps}
+    >
+      {props.children}
+    </Typography>
+  );
+}
+
+function SingleValue(props) {
+  return (
+    <Typography className={props.selectProps.classes.singleValue} {...props.innerProps}>
+      {props.children}
+    </Typography>
+  );
+}
+
+function ValueContainer(props) {
+  return <div className={props.selectProps.classes.valueContainer}>{props.children}</div>;
+}
+
+function MultiValue(props) {
+  return (
+    <Chip
+      tabIndex={-1}
+      label={props.children}
+      className={classNames(props.selectProps.classes.chip, {
+        [props.selectProps.classes.chipFocused]: props.isFocused,
+      })}
+      onDelete={event => {
+        props.removeProps.onClick();
+        props.removeProps.onMouseDown(event);
+      }}
+    />
+  );
+}
+
+const components = {
+  Option,
+  Control,
+  NoOptionsMessage,
+  Placeholder,
+  SingleValue,
+  MultiValue,
+  ValueContainer,
+};
 
 class App extends Component {
   constructor() {
     super()
     this.state = {
-      username: JSON.stringify(line_chart_list),
-      options: line_chart_list,
       stock_no: "",
       list_type: "1_month"
     }
-    this.handleClick = this.handleClick.bind(this)
+
+    var url = "/getStock/list/ALL";
+    instance.get(url).
+      then(response => {
+        var data = response.data;
+        var ls_stock_list = new Array()
+        console.log(data);
+        for (var i = 0; i < data.length; i++) {
+          console.log(data[i].id + "(" + data[i].name + ")");
+          ls_stock_list[i] = { label: data[i].id + "(" + data[i].name + ")" };
+        }
+        stock_list = ls_stock_list;
+        this.forceUpdate();
+      });
+
+    this.handleClick = this.handleClick.bind(this);
+    this.handleChange_no_edit = this.handleChange_no_edit.bind(this);
+  }
+
+  handleChange_no_edit(value) {
+    var url = "/getStock/list/" + value;
+    instance.get(url).
+      then(response => {
+        var data = response.data;
+        var ls_stock_list = new Array()
+        console.log(data);
+        for (var i = 0; i < data.length; i++) {
+          console.log(data[i].id + "(" + data[i].name + ")");
+          ls_stock_list[i] = { label: data[i].id + "(" + data[i].name + ")" };
+        }
+        stock_list = ls_stock_list;
+        this.forceUpdate();
+      });
   }
 
   handleChange_no(event) {
     // event.target 是當前的 DOM elment
     // 從 event.target.value 取得 user 剛輸入的值
     // 將 user 輸入的值更新回 state
-    stock_no = event.target.value;
-    console.log(stock_no);
+    stock_no = event.label;
   }
 
   handleChange_type(event) {
@@ -112,8 +293,14 @@ class App extends Component {
     else
       day = "" + s_time_src.getDate()
 
+    //取得時間區間起始
     var s_time = year + "-" + month + "-" + day
 
+    //取得編號部分
+    var ls_tmp = stock_no;
+    if (ls_tmp.indexOf("(", 0) > 0) {
+      stock_no = ls_tmp.substr(0, ls_tmp.indexOf("(", 0));
+    }
 
     var url = "/getRangePrices/" + stock_no + "/" + s_time + "/" + e_time;
     console.log("url:" + url)
@@ -128,10 +315,10 @@ class App extends Component {
           },
           yAxis: {
             type: 'value',
-            min: 0,
-            max: 500,
+            min: 0, //最小
+            max: 500, //最大
           },
-          tooltip: {
+          tooltip: { //提示
             trigger: 'axis'
           },
           series: [{
@@ -159,25 +346,35 @@ class App extends Component {
         new_list.yAxis.min = Math.ceil(min * 0.9);
 
         line_chart_list = new_list;
-        this.setState({ options: line_chart_list });
+        this.forceUpdate();
       })
       .catch(function (error) {
         console.log(error); // Network Error
         console.log(error.status); // undefined
         console.log(error.code); // undefined
       });
-    //instance.get('/getRangePrices/2330/2018-07-01/2018-07-31')
 
-    //.then(response => this.setState({ options: line_chart_list }))
-    //   axios.get('https://api.github.com/users/maecapozzi')
-    //    .then(response => this.setState({ username:JSON.stringify(line_chart_list) }))
   }
 
+
   render() {
+    const { classes } = this.props;
     return (
       <div className='button__container'>
-        <p>股票代碼 :
-        <input className="no" value={this.stock_no} onChange={this.handleChange_no}></input></p>
+        <p>股票代碼 :</p>
+        <NoSsr>
+          <Select
+            classes={classes}
+            options={stock_list}
+            components={components}
+            value={this.stock_no}
+            onChange={this.handleChange_no}
+            placeholder="填入查詢的股票代碼或說明"
+            autoWidth="true"
+            onInputChange={this.handleChange_no_edit}
+            native="true"
+          />
+        </NoSsr>
         <p>查詢區間 :
         <select value={this.list_type} onChange={this.handleChange_type}>
             <option value="1_month">最近一個月</option>
@@ -200,4 +397,4 @@ class App extends Component {
     )
   }
 }
-export default App
+export default withStyles(styles)(App);
