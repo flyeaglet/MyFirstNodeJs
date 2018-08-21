@@ -96,11 +96,12 @@ app.get('/getDean/:id/:date', function (request, response) { //取得股票成�
     });
 })
 
-app.get('/getStock/list', function (request, response) { //取得股票清單
+app.get('/getStock/list/:wc', function (request, response) { //取得股票清單
     console.log("Request:getStockList");
 
+    var ls_wc = request.params.wc;
     response.writeHead(200, { 'Content-Type': 'text/html' });
-    response.write('<head><meta charset="utf-8"/></head>');
+    //response.write('<head><meta charset="utf-8"/></head>');
 
     //載入MySQL模組
     var mysql = require('mysql');
@@ -116,8 +117,19 @@ app.get('/getStock/list', function (request, response) { //取得股票清單
     //開始連接
     connection.connect();
     //連線測試
-    var ls_twse003;
-    ls_twse003 = connection.query("SELECT DISTINCT twse001,name003 FROM stock.twse_t LEFT JOIN stock.name_t ON twse001 = name001 ", function (error, rows, fields) {
+    var ls_tws003;
+    var ls_sql = "SELECT DISTINCT twse001,name003 FROM stock.twse_t LEFT JOIN stock.name_t ON twse001 = name001 "
+    if (ls_wc != "ALL")
+    {
+        ls_sql = ls_sql + " WHERE twse001 LIKE '"+ls_wc +"%' Limit 50"
+    }
+    else
+    {
+        ls_sql = ls_sql + " Limit 50"
+    }
+    console.log(ls_sql);
+
+    ls_twse003 = connection.query(ls_sql, function (error, rows, fields) {
         //檢查是否有錯誤
         if (error) {
             throw error;
