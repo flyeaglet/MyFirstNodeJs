@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import './App.css'
 import ReactEcharts from 'echarts-for-react';
 import axios from 'axios'
 
@@ -34,6 +33,22 @@ var line_chart_list = {
     smooth: true
   }]
 };
+
+var line_chart_list2 = {
+  xAxis: {
+    type: 'category',
+    data: ['default']
+  },
+  yAxis: {
+    type: 'value'
+  },
+  series: [{
+    data: [0],
+    type: 'bar'
+  }]
+};
+
+
 var stock_no = "";
 var list_type = "1_month";
 
@@ -302,6 +317,7 @@ class App extends Component {
       stock_no = ls_tmp.substr(0, ls_tmp.indexOf("(", 0));
     }
 
+    //刷新價格資訊
     var url = "/getRangePrices/" + stock_no + "/" + s_time + "/" + e_time;
     console.log("url:" + url)
     //instance.get('/getRangePrices/2330/2018-07-01/2018-07-31')
@@ -309,11 +325,19 @@ class App extends Component {
       .then(response => {
         var data = response.data.data;
         var new_list = {
+          title: {
+            text: '個股單價',
+            //subtext: '数据来自西安兰特水电测控技术有限公司',
+            x: 'center',
+            align: 'right',
+            y: '15px'
+          },
           xAxis: {
             type: 'category',
             data: []
           },
           yAxis: {
+            name: '單價:元(NT)',
             type: 'value',
             min: 0, //最小
             max: 500, //最大
@@ -327,23 +351,19 @@ class App extends Component {
           }]
         };
 
-        var max = 0, min = 9999;
+        //var max = 0, min = 9999;
+        var tmp_array = [];
         for (var i = 0; i < data.length; i++) {
           console.log(data[i].date);
           console.log(data[i].price);
           new_list.xAxis.data[i] = data[i].date;
           new_list.series[0].data[i] = data[i].price;
-          //取最大
-          if (data[i].price > max) {
-            max = data[i].price;
-          }
-          //取最小
-          if (data[i].price < min) {
-            min = data[i].price;
-          }
+          if (data[i].price != undefined)
+          tmp_array[i] = data[i].price;
         }
-        new_list.yAxis.max = Math.floor(max * 1.1);
-        new_list.yAxis.min = Math.ceil(min * 0.9);
+
+        new_list.yAxis.max = Math.floor(Math.max.apply(null, tmp_array) * 1.1); //求最大值 
+        new_list.yAxis.min = Math.ceil(Math.min.apply(null, tmp_array) * 0.9); //求最小值
 
         line_chart_list = new_list;
         this.forceUpdate();
@@ -354,45 +374,135 @@ class App extends Component {
         console.log(error.code); // undefined
       });
 
+    //刷新交易量
+    var url = "/getTraceAmount/" + stock_no + "/" + s_time + "/" + e_time;
+    console.log("url:" + url)
+    //instance.get('/getTraceAmount/2330/2018-07-01/2018-07-31')
+    instance.get(url)
+      .then(response => {
+        var data = response.data.data;
+        var new_list = {
+          title: {
+            text: '個股交易量',
+            //subtext: '数据来自西安兰特水电测控技术有限公司',
+            x: 'center',
+            align: 'right',
+            y: '15px'
+          },
+          xAxis: {
+            type: 'category',
+            data: []
+          },
+          yAxis: {
+            name: '交易股數',
+            type: 'value',
+            min: 0, //最小
+            max: 500, //最大
+          },
+          tooltip: { //提示
+            trigger: 'axis'
+          },
+          series: [{
+            data: [],
+            type: 'line'
+          }]
+        };
+
+        var tmp_array = [];
+        for (var i = 0; i < data.length; i++) {
+          new_list.xAxis.data[i] = data[i].date;
+          new_list.series[0].data[i] = data[i].amount;
+          tmp_array[i] = data[i].amount;
+        }
+
+        var max = Math.max.apply(null, tmp_array); //求最大值 
+        var min = Math.min.apply(null, tmp_array); //求最小值
+
+        new_list.yAxis.max = max * 1.2;
+        new_list.yAxis.min = min * 0.8;
+
+        line_chart_list2 = new_list;
+        this.forceUpdate();
+      })
+      .catch(function (error) {
+        console.log(error); // Network Error
+        console.log(error.status); // undefined
+        console.log(error.code); // undefined
+      });
+
+    //刷新KD線
+
+    //刷新月營收
+
   }
 
 
   render() {
     const { classes } = this.props;
     return (
-      <div className='button__container'>
-        <p>股票代碼 :</p>
-        <NoSsr>
-          <Select
-            classes={classes}
-            options={stock_list}
-            components={components}
-            value={this.stock_no}
-            onChange={this.handleChange_no}
-            placeholder="填入查詢的股票代碼或說明"
-            autoWidth="true"
-            onInputChange={this.handleChange_no_edit}
-            native="true"
-          />
-        </NoSsr>
-        <p>查詢區間 :
+      <div>
+        <div class='menu'>
+          <button className='button' onClick={this.handleClick}>待用按鈕1</button><p />
+          <button className='button' onClick={this.handleClick}>待用按鈕2</button><p />
+          <button className='button' onClick={this.handleClick}>待用按鈕3</button><p />
+          <button className='button' onClick={this.handleClick}>待用按鈕4</button><p />
+          <button className='button' onClick={this.handleClick}>待用按鈕5</button><p />
+          <button className='button' onClick={this.handleClick}>待用按鈕6</button><p />
+        </div>
+        <div class='parent'>
+          <div class='search'><div class='search'>
+            請挑選要查詢的股票代碼 :
+              <Select
+              classes={classes}
+              options={stock_list}
+              components={components}
+              value={this.stock_no}
+              onChange={this.handleChange_no}
+              placeholder="填入查詢的股票代碼或說明"
+              autoWidth="true"
+              onInputChange={this.handleChange_no_edit}
+              native="true"
+            />
+            <p>查詢區間 :
         <select value={this.list_type} onChange={this.handleChange_type}>
-            <option value="1_month">最近一個月</option>
-            <option value="3_month">最近三個月</option>
-            <option value="6_mounth">最近半年</option>
-            <option value="1_year">最近一年</option>
-            <option value="3_year">最近三年</option>
-            <option value="all_year">全部資料</option>
-          </select></p>
-        <p />
-        <button className='button' onClick={this.handleClick}>查詢</button>
-        <hr />
-        <p>目前挑選的股票代碼為:{stock_no}</p>
-        <hr />
-        <ReactEcharts
-          option={line_chart_list}
-          style={{ height: '350px', width: '100%' }}
-          className='react_for_echarts' />
+                <option value="1_month">最近一個月</option>
+                <option value="3_month">最近三個月</option>
+                <option value="6_mounth">最近半年</option>
+                <option value="1_year">最近一年</option>
+                <option value="3_year">最近三年</option>
+                <option value="all_year">全部資料</option>
+              </select></p>
+            <p />
+            <button className='button' onClick={this.handleClick}>查詢</button>
+            <hr />
+            <p>目前挑選的股票代碼為:{stock_no}</p>
+            <hr />
+          </div></div>
+          <div class='child'>
+            <ReactEcharts
+              option={line_chart_list}
+              style={{ height: '350px', width: '100%' }}
+              className='react_for_echarts' />
+          </div>
+          <div class='child'>
+            <ReactEcharts
+              option={line_chart_list2}
+              style={{ height: '350px', width: '100%' }}
+              className='react_for_echarts' />
+          </div>
+          <div class='child'>
+            <ReactEcharts
+              option={line_chart_list}
+              style={{ height: '350px', width: '100%' }}
+              className='react_for_echarts' />
+          </div>
+          <div class='child'>
+            <ReactEcharts
+              option={line_chart_list}
+              style={{ height: '350px', width: '100%' }}
+              className='react_for_echarts' />
+          </div>
+        </div>
       </div>
     )
   }

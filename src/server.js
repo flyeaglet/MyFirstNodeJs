@@ -13,15 +13,15 @@ app.use(cors())
 //router.get('/getRangePrices/:id/:sdate/:edate', getRangePrices); //取得一定時間區間的股價清單
 
 app.get('/getPrice/:id/:date', function (request, response) { //取得股票價格
-    
+
     console.log("Request:getStockPrice");
 
     var id = request.params.id;
     var date = request.params.date;
-    console.log("查詢代碼:"+id);
-    console.log("日期:"+date);
+    console.log("查詢代碼:" + id);
+    console.log("日期:" + date);
 
-    response.writeHead( 201, {'Content-Type' : 'text/plain'});
+    response.writeHead(201, { 'Content-Type': 'text/plain' });
 
     //載入MySQL模組
     var mysql = require('mysql');
@@ -32,24 +32,22 @@ app.get('/getPrice/:id/:date', function (request, response) { //取得股票價�
         user: 'root',
         password: 'root',
         database: 'stock',
-        insecureAuth : true
+        insecureAuth: true
     });
     //開始連接
     connection.connect();
     //連線測試
     var ls_twse007;
-    ls_twse007 = connection.query("SELECT twse007 FROM stock.twse_t WHERE twse001 = '"+id+"' AND twse002='"+date+"'",function(error, rows, fields){
+    ls_twse007 = connection.query("SELECT twse007 FROM stock.twse_t WHERE twse001 = '" + id + "' AND twse002='" + date + "'", function (error, rows, fields) {
         //檢查是否有錯誤
-        if(error)
-        {
+        if (error) {
             throw error;
             response.end(error);
         }
-        else
-        {
+        else {
             console.log('2330: ' + rows[0].twse007);
             price = rows[0].twse007;
-            var j_json = { "id":id,"date":date,"c_prise":price};    // 一個物件
+            var j_json = { "id": id, "date": date, "c_prise": price };    // 一個物件
             var s_json = JSON.stringify(j_json);    // 字串化
 
             response.end(s_json);
@@ -119,12 +117,10 @@ app.get('/getStock/list/:wc', function (request, response) { //取得股票清�
     //連線測試
     var ls_tws003;
     var ls_sql = "SELECT DISTINCT twse001,name003 FROM stock.twse_t LEFT JOIN stock.name_t ON twse001 = name001 "
-    if (ls_wc != "ALL")
-    {
-        ls_sql = ls_sql + " WHERE twse001 LIKE '"+ls_wc +"%' Limit 50"
+    if (ls_wc != "ALL") {
+        ls_sql = ls_sql + " WHERE twse001 LIKE '" + ls_wc + "%' Limit 50"
     }
-    else
-    {
+    else {
         ls_sql = ls_sql + " Limit 50"
     }
     console.log(ls_sql);
@@ -200,9 +196,9 @@ app.get('/getPrices/:date', function (request, response) { //取得股票價格
             response.end(s_json);
         }
     });
-  })
+})
 
-  app.get('/getNpercent/:percent', function (request, response) { //取得當天成交量N%以上的股票
+app.get('/getNpercent/:percent', function (request, response) { //取得當天成交量N%以上的股票
     console.log("Request:getStockPercentUp");
 
     percent = (request.params.percent) / 100;
@@ -301,9 +297,9 @@ app.get('/getPrices/:date', function (request, response) { //取得股票價格
             response.end(s_json);
         }
     });
-  })
+})
 
-  app.get('/getRangePrices/:id/:sdate/:edate', function (request, response) { //取得一定時間區間的股價清單
+app.get('/getRangePrices/:id/:sdate/:edate', function (request, response) { //取得一定時間區間的股價清單
     console.log("Request:getRangePrices");
 
     id = request.params.id;
@@ -359,9 +355,9 @@ app.get('/getPrices/:date', function (request, response) { //取得股票價格
             response.end(s_json);
         }
     });
-  })
+})
 
-  app.get('/getMaxMinPrices/:id/:sdate/:edate', function (request, response) { //取得一定時間區間的股價最大最小值
+app.get('/getMaxMinPrices/:id/:sdate/:edate', function (request, response) { //取得一定時間區間的股價最大最小值
     console.log("Request:getRangePrices");
 
     id = request.params.id;
@@ -417,7 +413,66 @@ app.get('/getPrices/:date', function (request, response) { //取得股票價格
             response.end(s_json);
         }
     });
-  })
+})
+
+app.get('/getTraceAmount/:id/:sdate/:edate', function (request, response) { //取得一定時間區間的股價交易量
+    console.log("Request:getTraceAmount");
+
+    id = request.params.id;
+    sdate = request.params.sdate;
+    edate = request.params.edate;
+
+    response.writeHead(201, { 'Content-Type': 'text/plain' });
+
+    //載入MySQL模組
+    var mysql = require('mysql');
+
+    //建立連線
+    var connection = mysql.createConnection({
+        host: 'localhost',
+        user: 'root',
+        password: 'root',
+        database: 'stock',
+        insecureAuth: true
+    });
+    //開始連接
+    connection.connect();
+
+    //console.log("SELECT twse001,twse002 FROM stock.twse_t WHERE twse001 = "+id+" AND twse002 between "+sdate+" and "+edate);
+    //資料撈取
+    console.log("SELECT twse002,twse003 FROM stock.twse_t WHERE twse001 = '" + id + "' AND twse002 between '" + sdate + "' and '" + edate + "'");
+    connection.query("SELECT twse002,twse003 FROM stock.twse_t WHERE twse001 = '" + id + "' AND twse002 between '" + sdate + "' and '" + edate + "'", function (error, rows, fields) {
+        
+        //檢查是否有錯誤
+        if (error) {
+            throw error;
+            response.end(error);
+        }
+        else {
+            var list = { data: [] };
+            for (i = 0; i < rows.length; i++) {
+                //取年
+                year = rows[i].twse002.getFullYear()
+                //取月
+                if ((rows[i].twse002.getMonth() + 1) < 10)
+                    mouth = "0" + (rows[i].twse002.getMonth() + 1)
+                else
+                    mouth = "" + (rows[i].twse002.getMonth() + 1)
+                //取日
+                if (rows[i].twse002.getDate() < 10)
+                    day = "0" + rows[i].twse002.getDate()
+                else
+                    day = "" + rows[i].twse002.getDate()
+                stock_date = year + "-" + mouth + "-" + day;
+
+                trace_amount = rows[i].twse003;
+                list.data.push({ date: stock_date, amount: trace_amount });
+            }
+            var s_json = JSON.stringify(list);    // 字串化
+            response.end(s_json);
+        }
+    });
+})
 
 app.listen(8000)
 console.log("Serve run in port 8000!")
