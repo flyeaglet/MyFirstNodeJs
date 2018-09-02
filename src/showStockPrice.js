@@ -30,7 +30,7 @@ import List from '@material-ui/core/List';
 var instance = axios.create({
   baseURL: 'http://59.126.125.77:8000'
 });
-var getInfos = require('./stock_infos.js')
+var getInfos = require('./stockInfos.js')
 
 //顏色定義
 var line_chart_list = {
@@ -49,21 +49,6 @@ var line_chart_list = {
     smooth: true
   }]
 };
-
-var line_chart_list2 = {
-  xAxis: {
-    type: 'category',
-    data: ['default']
-  },
-  yAxis: {
-    type: 'value'
-  },
-  series: [{
-    data: [0],
-    type: 'bar'
-  }]
-};
-
 
 var stock_no = "";
 var list_type = "1_month";
@@ -249,7 +234,8 @@ class App extends Component {
       list_type: "1_month",
       open: false,
       open2: false,
-      open3: false
+      open3: false,
+      line_chart_list : line_chart_list
     }
 
     var url = "/getStock/list/ALL";
@@ -300,68 +286,16 @@ class App extends Component {
     list_type = event.target.value;
   }
 
-  handleClick() {
+async handleClick() {
     console.log("no:" + stock_no);
     console.log("type:" + list_type);
+
+    var time = {};
+    time = getInfos.getDate(list_type);
+
     //抓取當天日期
-    var s_time_src = new Date();
-    var e_time_src = new Date();
-    var year;
-    var month;
-    var day;
-
-    //依據類型扣年月
-    switch (list_type) {
-      case "1_month":
-        s_time_src.setMonth(s_time_src.getMonth() - 1);
-        break;
-      case "3_month":
-        s_time_src.setMonth(s_time_src.getMonth() - 3);
-        break;
-      case "6_mounth":
-        s_time_src.setMonth(s_time_src.getMonth() - 6);
-        break;
-      case "1_year":
-        s_time_src.setYear(s_time_src.getYear() - 1);
-        break;
-      case "3_year":
-        s_time_src.setYear(s_time_src.getYear() - 3);
-        break;
-      case "all_year":
-        s_time_src.setYear(s_time_src.getYear() - 100);
-        break;
-    }
-
-    //取年
-    year = e_time_src.getFullYear()
-    //取月
-    if ((e_time_src.getMonth() + 1) < 10)
-      month = "0" + (e_time_src.getMonth() + 1)
-    else
-      month = "" + (e_time_src.getMonth() + 1)
-    //取日
-    if (e_time_src.getDate() < 10)
-      day = "0" + e_time_src.getDate()
-    else
-      day = "" + e_time_src.getDate()
-
-    var e_time = year + "-" + month + "-" + day
-
-    //取年
-    year = s_time_src.getFullYear()
-    //取月
-    if ((s_time_src.getMonth() + 1) < 10)
-      month = "0" + (s_time_src.getMonth() + 1)
-    else
-      month = "" + (s_time_src.getMonth() + 1)
-    //取日
-    if (s_time_src.getDate() < 10)
-      day = "0" + s_time_src.getDate()
-    else
-      day = "" + s_time_src.getDate()
-
-    //取得時間區間起始
-    var s_time = year + "-" + month + "-" + day
+    var s_time = time.start ; //起始時間
+    var e_time = time.end ; //截止時間
 
     //取得編號部分
     var ls_tmp = stock_no;
@@ -370,65 +304,9 @@ class App extends Component {
     }
 
     //取得價格資訊
-    line_chart_list = getInfos.get_stock_prices(stock_no,s_time,e_time);
-
-    //刷新價格資訊
-    var url = "/getRangePrices/" + stock_no + "/" + s_time + "/" + e_time;
-    console.log("url:" + url)
-    //instance.get('/getRangePrices/2330/2018-07-01/2018-07-31')
-    instance.get(url)
-      .then(response => {
-        var data = response.data.data;
-        var new_list = {
-          title: {
-            text: '個股單價',
-            //subtext: '数据来自西安兰特水电测控技术有限公司',
-            x: 'center',
-            align: 'right',
-            y: '15px'
-          },
-          xAxis: {
-            type: 'category',
-            data: []
-          },
-          yAxis: {
-            name: '單價:元(NT)',
-            type: 'value',
-            min: 0, //最小
-            max: 500, //最大
-          },
-          tooltip: { //提示
-            trigger: 'axis'
-          },
-          series: [{
-            data: [],
-            type: 'line'
-          }]
-        };
-
-        //var max = 0, min = 9999;
-        var tmp_array = [];
-        for (var i = 0; i < data.length; i++) {
-          console.log(data[i].date);
-          console.log(data[i].price);
-          new_list.xAxis.data[i] = data[i].date;
-          new_list.series[0].data[i] = data[i].price;
-          if (data[i].price !== undefined)
-            tmp_array[i] = data[i].price;
-        }
-
-        new_list.yAxis.max = Math.floor(Math.max.apply(null, tmp_array) * 1.1); //求最大值 
-        new_list.yAxis.min = Math.ceil(Math.min.apply(null, tmp_array) * 0.9); //求最小值
-
-        line_chart_list = new_list;
-        this.forceUpdate();
-      })
-      .catch(function (error) {
-        console.log(error); // Network Error
-        console.log(error.status); // undefined
-        console.log(error.code); // undefined
-      });
-
+    var new_list = await getInfos.getStockPrices(stock_no,s_time,e_time); 
+    line_chart_list = JSON.parse(new_list);
+ 
     //刷新交易量
     
 
@@ -436,23 +314,22 @@ class App extends Component {
 
     //刷新月營收
 
+    //刷新畫面
     this.forceUpdate();
-
   }
 
-
   //下拉展開(股票資訊)
-  handleClick = () => {
+  expand_option = () => {
         this.setState(state => ({ open: !state.open }));
   };
 
   //下拉展開(我的最愛)
-  handleClick2 = () => {
+  expand_option2 = () => {
     this.setState(state => ({ open2: !state.open2 }));
     };
 
     //下拉展開(瀏覽紀錄)
-    handleClick3 = () => {
+    expand_option3 = () => {
       this.setState(state => ({ open3: !state.open3 }));
       };
 
@@ -460,13 +337,13 @@ class App extends Component {
     const { classes } = this.props;
     return (
       <div>
-        <div class='top'>
-          <font class='title' face="微軟正黑體" size="8"><b>股票查詢</b></font><font class='title' face="微軟正黑體" size="3"><b>T.H</b></font>
+        <div className='top'>
+          <font className='title' face="微軟正黑體" size="8"><b>股票查詢</b></font><font className='title' face="微軟正黑體" size="3"><b>T.H</b></font>
           <p />
         </div>
-        <div class='menu'>
+        <div className='menu'>
 
-          <ListItem button onClick={this.handleClick}>
+          <ListItem button onClick={this.expand_option}>
             <ListItemIcon>
               <SearchIcon />
             </ListItemIcon>
@@ -474,7 +351,7 @@ class App extends Component {
             {this.state.open ? <ExpandLess /> : <ExpandMore />}
           </ListItem>
           <Collapse in={this.state.open} timeout="auto" unmountOnExit>
-            <List class="sub_button" component="div" disablePadding>
+            <List className="sub_button" component="div" disablePadding>
               <ListItem button onClick={this.handleClick}>
                 <ListItemIcon>
                   <SearchIcon />
@@ -482,7 +359,7 @@ class App extends Component {
                 <ListItemText inset primary="收盤價歷史紀錄" />
               </ListItem>
             </List>
-            <List class="sub_button" component="div" disablePadding>
+            <List className="sub_button" component="div" disablePadding>
               <ListItem button onClick={this.handleClick}>
                 <ListItemIcon>
                   <SearchIcon />
@@ -490,7 +367,7 @@ class App extends Component {
                 <ListItemText inset primary="成交量歷史紀錄" />
               </ListItem>
             </List>
-            <List class="sub_button" component="div" disablePadding>
+            <List className="sub_button" component="div" disablePadding>
               <ListItem button onClick={this.handleClick}>
                 <ListItemIcon>
                   <SearchIcon />
@@ -498,7 +375,7 @@ class App extends Component {
                 <ListItemText inset primary="KD線查歷史紀錄" />
               </ListItem>
             </List>
-            <List class="sub_button" component="div" disablePadding>
+            <List className="sub_button" component="div" disablePadding>
               <ListItem button onClick={this.handleClick}>
                 <ListItemIcon>
                   <SearchIcon marginLeft="5%" />
@@ -508,7 +385,7 @@ class App extends Component {
             </List>
           </Collapse>
 
-          <ListItem button onClick={this.handleClick2}>
+          <ListItem button onClick={this.expand_option2}>
             <ListItemIcon>
               <FavoriteIcon />
             </ListItemIcon>
@@ -516,7 +393,7 @@ class App extends Component {
             {this.state.open2 ? <ExpandLess /> : <ExpandMore />}
           </ListItem>
           <Collapse in={this.state.open2} timeout="auto" unmountOnExit>
-            <List class="sub_button" component="div" disablePadding>
+            <List className="sub_button" component="div" disablePadding>
               <ListItem button onClick={this.handleClick}>
                 <ListItemIcon>
                   <FavoriteIcon />
@@ -524,7 +401,7 @@ class App extends Component {
                 <ListItemText inset primary="收藏清單" />
               </ListItem>
             </List>
-            <List class="sub_button" component="div" disablePadding>
+            <List className="sub_button" component="div" disablePadding>
               <ListItem button onClick={this.handleClick}>
                 <ListItemIcon>
                   <FavoriteIcon />
@@ -534,7 +411,7 @@ class App extends Component {
             </List>
           </Collapse>
 
-          <ListItem button onClick={this.handleClick3}>
+          <ListItem button onClick={this.expand_option3}>
             <ListItemIcon>
               <HistoryIcon />
             </ListItemIcon>
@@ -542,7 +419,7 @@ class App extends Component {
             {this.state.open3 ? <ExpandLess /> : <ExpandMore />}
           </ListItem>
           <Collapse in={this.state.open3} timeout="auto" unmountOnExit>
-            <List class="sub_button" component="div" disablePadding>
+            <List className="sub_button" component="div" disablePadding>
               <ListItem button onClick={this.handleClick}>
                 <ListItemIcon>
                   <HistoryIcon />
@@ -550,7 +427,7 @@ class App extends Component {
                 <ListItemText inset primary="待開發" />
               </ListItem>
             </List>
-            <List class="sub_button" component="div" disablePadding>
+            <List className="sub_button" component="div" disablePadding>
               <ListItem button onClick={this.handleClick}>
                 <ListItemIcon>
                   <HistoryIcon />
@@ -567,8 +444,8 @@ class App extends Component {
           <p />
           <p />
         </div>
-        <div class='parent'>
-          <div class='search'><div class='search'>
+        <div className='parent'>
+          <div className='search'><div className='search'>
             請挑選要查詢的股票代碼 :
               <Select
               classes={classes}
@@ -596,7 +473,7 @@ class App extends Component {
             <p>目前挑選的股票代碼為:{stock_no}</p>
             <hr />
           </div></div>
-          <div class='child'>
+          <div className='child'>
             <ReactEcharts
               option={line_chart_list}
               style={{ height: '400px', width: '95%' }}
