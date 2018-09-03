@@ -7,7 +7,6 @@ import { emphasize } from '@material-ui/core/styles/colorManipulator';
 
 //material-ui
 import { withStyles } from "@material-ui/core/styles";
-import Button from '@material-ui/core/Button';
 import SearchIcon from '@material-ui/icons/Search';
 import FavoriteIcon from '@material-ui/icons/FavoriteBorder';
 import HistoryIcon from '@material-ui/icons/History';
@@ -25,6 +24,13 @@ import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import Collapse from '@material-ui/core/Collapse';
 import List from '@material-ui/core/List';
+import Avatar from '@material-ui/core/Avatar';
+import Grid from '@material-ui/core/Grid';
+import FormControl from '@material-ui/core/FormControl';
+import FormLabel from '@material-ui/core/FormLabel';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import Radio from '@material-ui/core/Radio';
 
 //先準備相關資訊
 var instance = axios.create({
@@ -50,9 +56,10 @@ var line_chart_list = {
   }]
 };
 
+//預設action 
 var stock_no = "";
-var list_type = "1_month";
-
+var selected_page_desc = '收盤價歷史紀錄'; //所在頁面說明
+var selected_page = 'getStockPrices'; //所在頁面(預設為價格頁)
 
 //取得股票清單
 var stock_list = [];
@@ -126,7 +133,6 @@ const styles = theme => ({
     marginright: '5%'
   },
 });
-
 function NoOptionsMessage(props) {
   return (
     <Typography
@@ -138,11 +144,9 @@ function NoOptionsMessage(props) {
     </Typography>
   );
 }
-
 function inputComponent({ inputRef, ...props }) {
   return <div ref={inputRef} {...props} />;
 }
-
 function Control(props) {
   return (
     <TextField
@@ -159,7 +163,6 @@ function Control(props) {
     />
   );
 }
-
 function Option(props) {
   return (
     <MenuItem
@@ -175,7 +178,6 @@ function Option(props) {
     </MenuItem>
   );
 }
-
 function Placeholder(props) {
   return (
     <Typography
@@ -187,7 +189,6 @@ function Placeholder(props) {
     </Typography>
   );
 }
-
 function SingleValue(props) {
   return (
     <Typography className={props.selectProps.classes.singleValue} {...props.innerProps}>
@@ -195,11 +196,9 @@ function SingleValue(props) {
     </Typography>
   );
 }
-
 function ValueContainer(props) {
   return <div className={props.selectProps.classes.valueContainer}>{props.children}</div>;
 }
-
 function MultiValue(props) {
   return (
     <Chip
@@ -215,7 +214,6 @@ function MultiValue(props) {
     />
   );
 }
-
 const components = {
   Option,
   Control,
@@ -232,10 +230,11 @@ class App extends Component {
     this.state = {
       stock_no: "",
       list_type: "1_month",
-      open: false,
+      open: true,
       open2: false,
       open3: false,
-      line_chart_list : line_chart_list
+      line_chart_list: line_chart_list,
+      list_type: '1_month'
     }
 
     var url = "/getStock/list/ALL";
@@ -252,8 +251,14 @@ class App extends Component {
         this.forceUpdate();
       });
 
-    this.handleClick = this.handleClick.bind(this);
-    this.handleChange_no_edit = this.handleChange_no_edit.bind(this);
+    //this.handleClick = this.handleClick.bind(this);
+    this.handleChange_no = this.handleChange_no.bind(this);
+    this.handleChange_show_chart = this.handleChange_show_chart.bind(this);
+    this.handleChange_no_edit = this.handleChange_no_edit.bind(this); //下拉搜尋(編輯中)
+    this.handleChange_getTradingVolume = this.handleChange_getTradingVolume.bind(this); //交易量
+    this.handleChange_getStockPrices = this.handleChange_getStockPrices.bind(this); //收盤價
+    this.handleChange_type = this.handleChange_type.bind(this); //日期區間(type)
+
   }
 
   handleChange_no_edit(value) {
@@ -277,61 +282,95 @@ class App extends Component {
     // 從 event.target.value 取得 user 剛輸入的值
     // 將 user 輸入的值更新回 state
     stock_no = event.label;
+    this.handleChange_show_chart();
   }
 
-  handleChange_type(event) {
-    // event.target 是當前的 DOM elment
-    // 從 event.target.value 取得 user 剛輸入的值
-    // 將 user 輸入的值更新回 state
-    list_type = event.target.value;
+  /*   handleChange_type(event) {
+      // event.target 是當前的 DOM elment
+      // 從 event.target.value 取得 user 剛輸入的值
+      // 將 user 輸入的值更新回 state
+      list_type = event.target.value;
+    } */
+
+  handleChange_type = key => (event, value) => {
+    this.state.list_type = value;
+    this.handleChange_show_chart();
+  };
+
+  handleChange_getStockPrices() {
+    selected_page = 'getStockPrices';
+    selected_page_desc = '收盤價歷史紀錄';
+    this.handleChange_show_chart();
   }
 
-async handleClick() {
+  handleChange_getTradingVolume() {
+    selected_page = 'getTradingVolume';
+    selected_page_desc = '成交量歷史紀錄';
+    this.handleChange_show_chart();
+  }
+
+  async handleChange_show_chart() {
+
+    //呈現相關資料
     console.log("no:" + stock_no);
-    console.log("type:" + list_type);
+    console.log("type:" + this.state.list_type);
 
     var time = {};
-    time = getInfos.getDate(list_type);
+    time = getInfos.getDate(this.state.list_type);
 
     //抓取當天日期
-    var s_time = time.start ; //起始時間
-    var e_time = time.end ; //截止時間
+    var s_time = time.start; //起始時間
+    var e_time = time.end; //截止時間
 
     //取得編號部分
     var ls_tmp = stock_no;
     if (ls_tmp.indexOf("(", 0) > 0) {
       stock_no = ls_tmp.substr(0, ls_tmp.indexOf("(", 0));
     }
+    var new_list;
+    switch (selected_page) {
+      case 'getStockPrices':
+        //取得價格資訊
+        new_list = await getInfos.getStockPrices(stock_no, s_time, e_time);
+        line_chart_list = JSON.parse(new_list);
+        break;
+      case "getTradingVolume":
+        //刷新交易量
+        new_list = await getInfos.getTradingVolume(stock_no, s_time, e_time);
+        line_chart_list = JSON.parse(new_list);
+        break;
+      case "c":
+        //刷新KD線
 
-    //取得價格資訊
-    var new_list = await getInfos.getStockPrices(stock_no,s_time,e_time); 
-    line_chart_list = JSON.parse(new_list);
- 
-    //刷新交易量
-    
+        break;
+      case "d":
+        //刷新//刷新月營收
 
-    //刷新KD線
+        break;
+      default:
 
-    //刷新月營收
+        break;
+    }
 
     //刷新畫面
     this.forceUpdate();
   }
 
+
   //下拉展開(股票資訊)
   expand_option = () => {
-        this.setState(state => ({ open: !state.open }));
+    this.setState(state => ({ open: !state.open }));
   };
 
   //下拉展開(我的最愛)
   expand_option2 = () => {
     this.setState(state => ({ open2: !state.open2 }));
-    };
+  };
 
-    //下拉展開(瀏覽紀錄)
-    expand_option3 = () => {
-      this.setState(state => ({ open3: !state.open3 }));
-      };
+  //下拉展開(瀏覽紀錄)
+  expand_option3 = () => {
+    this.setState(state => ({ open3: !state.open3 }));
+  };
 
   render() {
     const { classes } = this.props;
@@ -342,7 +381,6 @@ async handleClick() {
           <p />
         </div>
         <div className='menu'>
-
           <ListItem button onClick={this.expand_option}>
             <ListItemIcon>
               <SearchIcon />
@@ -352,7 +390,7 @@ async handleClick() {
           </ListItem>
           <Collapse in={this.state.open} timeout="auto" unmountOnExit>
             <List className="sub_button" component="div" disablePadding>
-              <ListItem button onClick={this.handleClick}>
+              <ListItem button onClick={this.handleChange_getStockPrices}>
                 <ListItemIcon>
                   <SearchIcon />
                 </ListItemIcon>
@@ -360,7 +398,7 @@ async handleClick() {
               </ListItem>
             </List>
             <List className="sub_button" component="div" disablePadding>
-              <ListItem button onClick={this.handleClick}>
+              <ListItem button onClick={this.handleChange_getTradingVolume}>
                 <ListItemIcon>
                   <SearchIcon />
                 </ListItemIcon>
@@ -436,16 +474,12 @@ async handleClick() {
               </ListItem>
             </List>
           </Collapse>
-          <p />
-          <Button variant="contained" className={classNames(classes.history)} onClick={this.handleClick} fullWidth={true}>
-            瀏覽紀錄
-          <HistoryIcon className={classes.rightIcon} />
-          </Button>
-          <p />
-          <p />
         </div>
+
         <div className='parent'>
           <div className='search'><div className='search'>
+            <font face="微軟正黑體" size="8"><b> {selected_page_desc} </b></font>
+            <p />
             請挑選要查詢的股票代碼 :
               <Select
               classes={classes}
@@ -453,35 +487,39 @@ async handleClick() {
               components={components}
               value={this.stock_no}
               onChange={this.handleChange_no}
-              placeholder="填入查詢的股票代碼或說明"
+              placeholder="請選擇欲查詢的股票代碼"
               autoWidth="true"
               onInputChange={this.handleChange_no_edit}
               native="true"
             />
-            <p>查詢區間 :
-        <select value={this.list_type} onChange={this.handleChange_type}>
-                <option value="1_month">最近一個月</option>
-                <option value="3_month">最近三個月</option>
-                <option value="6_mounth">最近半年</option>
-                <option value="1_year">最近一年</option>
-                <option value="3_year">最近三年</option>
-                <option value="all_year">全部資料</option>
-              </select></p>
             <p />
-            <button className='button' onClick={this.handleClick}>查詢</button>
+            查詢區間
+            <Grid item xs={12}>
+              <FormControl component="fieldset">
+                <RadioGroup row name="avatar" aria-label="avatar" value={this.state.list_type} onChange={this.handleChange_type('list_type')}>
+                  <FormControlLabel value="1_month" control={<Radio />} label="最近一個月" />
+                  <FormControlLabel value="3_month" control={<Radio />} label="最近三個月" />
+                  <FormControlLabel value="6_mounth" control={<Radio />} label="最近半年" />
+                  <FormControlLabel value="1_year" control={<Radio />} label="最近一年" />
+                  <FormControlLabel value="3_year" control={<Radio />} label="最近三年" />
+                  <FormControlLabel value="all_year" control={<Radio />} label="全部資料" />
+                </RadioGroup>
+              </FormControl>
+            </Grid>
             <hr />
             <p>目前挑選的股票代碼為:{stock_no}</p>
+            <p />
             <hr />
           </div></div>
           <div className='child'>
             <ReactEcharts
               option={line_chart_list}
               style={{ height: '400px', width: '95%' }}
-              className='react_for_echarts' /> 
+              className='react_for_echarts' />
           </div>
         </div>
-      </div> 
-    ) 
+      </div>
+    )
   }
 }
 export default withStyles(styles)(App);

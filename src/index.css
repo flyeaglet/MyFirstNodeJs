@@ -19,11 +19,11 @@
   background-color: rgb(191, 211, 252);
 }
 .search {
-margin-top:10px;
+margin-top:20px;
 margin-left:20px;
 margin-right:20px;
 margin-bottom:10px;
-background-color: #9999FF;
+background-color:   rgb(175, 186, 240);
 color: white;
 }
 .sub_button{
@@ -45,4 +45,11 @@ background-color: rgb(191, 211, 252) ;
   margin-right:20px;
   margin-bottom:10px;
 background-color: #FFFFFF;
+}
+.radio{
+  float: left;
+  margin-top:5px;
+  margin-left:10px;
+  margin-right:10px;
+  margin-bottom:5px;
 }
