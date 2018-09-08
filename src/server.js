@@ -1,9 +1,25 @@
+//載入所需模組
 var express = require('express');
 var app = express();
 var port = process.env.PORT || 8080;
 var cors = require('cors')
+var CryptoJS = require("crypto-js");
+var mysql = require('mysql');
 
+//建立server連線
 app.use(cors())
+
+//建立連線
+var connection = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: 'root',
+    database: 'stock',
+    insecureAuth: true
+});
+
+//開始連接
+connection.connect();
 
 //router.get('/getPrice/:id/:date', getStockPrice); //取得股票價格
 //router.get('/getDean/:id/:date', getStockDean); //取得股票成交量
@@ -23,20 +39,7 @@ app.get('/getPrice/:id/:date', function (request, response) { //取得股票價�
 
     response.writeHead(201, { 'Content-Type': 'text/plain' });
 
-    //載入MySQL模組
-    var mysql = require('mysql');
-
-    //建立連線
-    var connection = mysql.createConnection({
-        host: 'localhost',
-        user: 'root',
-        password: 'root',
-        database: 'stock',
-        insecureAuth: true
-    });
-    //開始連接
-    connection.connect();
-    //連線測試
+    //取得價格
     var ls_twse007;
     ls_twse007 = connection.query("SELECT twse007 FROM stock.twse_t WHERE twse001 = '" + id + "' AND twse002='" + date + "'", function (error, rows, fields) {
         //檢查是否有錯誤
@@ -64,19 +67,6 @@ app.get('/getDean/:id/:date', function (request, response) { //取得股票成�
 
     response.writeHead(201, { 'Content-Type': 'text/plain' });
 
-    //載入MySQL模組
-    var mysql = require('mysql');
-
-    //建立連線
-    var connection = mysql.createConnection({
-        host: 'localhost',
-        user: 'root',
-        password: 'root',
-        database: 'stock',
-        insecureAuth: true
-    });
-    //開始連接
-    connection.connect();
     //連線測試
     var ls_twse003;
     ls_twse003 = connection.query("SELECT twse003 FROM stock.twse_t WHERE twse001 = '" + id + "' AND twse002='" + date + "'", function (error, rows, fields) {
@@ -100,30 +90,6 @@ app.get('/getStock/list/:wc', function (request, response) { //取得股票清�
     var ls_wc = request.params.wc;
     response.writeHead(200, { 'Content-Type': 'text/html' });
     //response.write('<head><meta charset="utf-8"/></head>');
-
-    //載入MySQL模組
-    var mysql = require('mysql');
-
-    //建立連線
-    var connection = mysql.createConnection({
-        host: 'localhost',
-        user: 'root',
-        password: 'root',
-        database: 'stock',
-        insecureAuth: true
-    });
-    //開始連接
-    connection.connect();
-    //連線測試
-    var ls_tws003;
-    var ls_sql = "SELECT DISTINCT twse001,name003 FROM stock.twse_t LEFT JOIN stock.name_t ON twse001 = name001 "
-    if (ls_wc != "ALL") {
-        ls_sql = ls_sql + " WHERE twse001 LIKE '" + ls_wc + "%' Limit 50"
-    }
-    else {
-        ls_sql = ls_sql + " Limit 50"
-    }
-    console.log(ls_sql);
 
     ls_twse003 = connection.query(ls_sql, function (error, rows, fields) {
         //檢查是否有錯誤
@@ -164,20 +130,6 @@ app.get('/getPrices/:date', function (request, response) { //取得股票價格
 
     response.writeHead(201, { 'Content-Type': 'text/plain' });
 
-    //載入MySQL模組
-    var mysql = require('mysql');
-
-    //建立連線
-    var connection = mysql.createConnection({
-        host: 'localhost',
-        user: 'root',
-        password: 'root',
-        database: 'stock',
-        insecureAuth: true
-    });
-    //開始連接
-    connection.connect();
-
     //資料撈取
     connection.query("SELECT twse001,twse007 FROM stock.twse_t WHERE twse001 in (" + id_list + ") AND twse002='" + date + "'", function (error, rows, fields) {
         //檢查是否有錯誤
@@ -206,20 +158,6 @@ app.get('/getNpercent/:percent', function (request, response) { //取得當天�
     console.log("percent:" + percent);
 
     response.writeHead(201, { 'Content-Type': 'text/plain' });
-
-    //載入MySQL模組
-    var mysql = require('mysql');
-
-    //建立連線
-    var connection = mysql.createConnection({
-        host: 'localhost',
-        user: 'root',
-        password: 'root',
-        database: 'stock',
-        insecureAuth: true
-    });
-    //開始連接
-    connection.connect();
 
     var today;
     var yestoday;
@@ -308,21 +246,6 @@ app.get('/getRangePrices/:id/:sdate/:edate', function (request, response) { //�
 
     response.writeHead(201, { 'Content-Type': 'text/plain' });
 
-    //載入MySQL模組
-    var mysql = require('mysql');
-
-    //建立連線
-    var connection = mysql.createConnection({
-        host: 'localhost',
-        user: 'root',
-        password: 'root',
-        database: 'stock',
-        insecureAuth: true
-    });
-    //開始連接
-    connection.connect();
-
-    //console.log("SELECT twse001,twse002 FROM stock.twse_t WHERE twse001 = "+id+" AND twse002 between "+sdate+" and "+edate);
     //資料撈取
     console.log("SELECT twse002,twse007 FROM stock.twse_t WHERE twse001 = '" + id + "' AND twse002 between '" + sdate + "' and '" + edate + "'");
     connection.query("SELECT twse002,twse007 FROM stock.twse_t WHERE twse001 = '" + id + "' AND twse002 between '" + sdate + "' and '" + edate + "'", function (error, rows, fields) {
@@ -366,21 +289,6 @@ app.get('/getMaxMinPrices/:id/:sdate/:edate', function (request, response) { //�
 
     response.writeHead(201, { 'Content-Type': 'text/plain' });
 
-    //載入MySQL模組
-    var mysql = require('mysql');
-
-    //建立連線
-    var connection = mysql.createConnection({
-        host: 'localhost',
-        user: 'root',
-        password: 'root',
-        database: 'stock',
-        insecureAuth: true
-    });
-    //開始連接
-    connection.connect();
-
-    //console.log("SELECT twse001,twse002 FROM stock.twse_t WHERE twse001 = "+id+" AND twse002 between "+sdate+" and "+edate);
     //資料撈取
     console.log("SELECT Max(twse007) FROM stock.twse_t WHERE twse001 = '" + id + "' AND twse002 between '" + sdate + "' and '" + edate + "'");
     connection.query("SELECT twse002,twse007 FROM stock.twse_t WHERE twse001 = '" + id + "' AND twse002 between '" + sdate + "' and '" + edate + "'", function (error, rows, fields) {
@@ -424,25 +332,10 @@ app.get('/getTraceAmount/:id/:sdate/:edate', function (request, response) { //�
 
     response.writeHead(201, { 'Content-Type': 'text/plain' });
 
-    //載入MySQL模組
-    var mysql = require('mysql');
-
-    //建立連線
-    var connection = mysql.createConnection({
-        host: 'localhost',
-        user: 'root',
-        password: 'root',
-        database: 'stock',
-        insecureAuth: true
-    });
-    //開始連接
-    connection.connect();
-
-    //console.log("SELECT twse001,twse002 FROM stock.twse_t WHERE twse001 = "+id+" AND twse002 between "+sdate+" and "+edate);
     //資料撈取
     console.log("SELECT twse002,twse003 FROM stock.twse_t WHERE twse001 = '" + id + "' AND twse002 between '" + sdate + "' and '" + edate + "'");
     connection.query("SELECT twse002,twse003 FROM stock.twse_t WHERE twse001 = '" + id + "' AND twse002 between '" + sdate + "' and '" + edate + "'", function (error, rows, fields) {
-        
+
         //檢查是否有錯誤
         if (error) {
             throw error;
@@ -472,6 +365,75 @@ app.get('/getTraceAmount/:id/:sdate/:edate', function (request, response) { //�
             response.end(s_json);
         }
     });
+})
+
+app.get('/register', function (request, response) { //註冊帳號
+    console.log("Request:getStockPrices");
+    var body = request.body;
+    var j_body = JSON.parse(body);
+    //{message:'xxxxxxxxx'} ->加密
+
+    //加解密模組
+    var msg_encoded = j_body.message;
+    var msg_dncoded = CryptoJS.AES.decrypt(msg_encoded, 'tree0132');
+    var infos = JSON.parse(msg_dncoded);
+
+    response.writeHead(201, { 'Content-Type': 'text/plain' });
+
+    //檢核帳號是否已經存在
+    connection.query("SELECT COUNT(1) FROM stock.user_t WHERE user001 = ? ", infos.acc, function (error, rows, fields) {
+        //檢查是否有錯誤
+        if (error) {
+            throw error;
+            response.end(error);
+        }
+        else {
+            response.end('此帳號已存在，請重新註冊！');
+        }
+    });
+
+    //資料撈取
+    var today = new Date();
+    var user_info = { user001: infos.acc, user002: infos.pwd, user003: today, user004: infos.mail, user005: infos.gender };
+
+    connection.query("INSERT INTO user_t (user001,user002,user003,user004,user005) VALUES ?", user_info, function (error, rows, fields) {
+        //檢查是否有錯誤
+        if (error) {
+            throw error;
+            response.end(error);
+        }
+        else {
+            response.end('註冊成功，請重新登入！');
+        }
+    });
+})
+
+app.get('/login', function (request, response) { //註冊帳號
+    console.log("Request:getStockPrices");
+    var body = request.body;
+    var j_body = JSON.parse(body);
+    //{message:'xxxxxxxxx'} ->加密
+
+    //加解密模組
+    var msg_encoded = j_body.message;
+    var msg_dncoded = CryptoJS.AES.decrypt(msg_encoded, 'tree0132');
+    var infos = JSON.parse(msg_dncoded);
+
+    response.writeHead(201, { 'Content-Type': 'text/plain' });
+
+    //檢核帳密是否正確
+    var user_info = { user001: infos.acc, user002: infos.pwd, user003: today, user004: infos.mail, user005: infos.gender };
+    connection.query("SELECT COUNT(1) FROM stock.user_t WHERE user001 = ? AND user002 = ?", infos, function (error, rows, fields) {
+        //檢查是否有錯誤
+        if (error) {
+            throw error;
+            response.end('登入失敗，請重新檢驗帳號或密碼是否錯誤！');
+        }
+        else {
+            response.end('登入成功！');
+        }
+    });
+
 })
 
 app.listen(8000)
