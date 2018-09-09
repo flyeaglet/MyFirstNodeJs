@@ -1,6 +1,6 @@
-import React, { Component } from 'react'
+import React, { Component } from 'react';
 import ReactEcharts from 'echarts-for-react';
-import axios from 'axios'
+import axios from 'axios';
 import classNames from 'classnames';
 import Select from 'react-select';
 import { emphasize } from '@material-ui/core/styles/colorManipulator';
@@ -24,19 +24,25 @@ import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import Collapse from '@material-ui/core/Collapse';
 import List from '@material-ui/core/List';
-import Avatar from '@material-ui/core/Avatar';
 import Grid from '@material-ui/core/Grid';
 import FormControl from '@material-ui/core/FormControl';
-import FormLabel from '@material-ui/core/FormLabel';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Radio from '@material-ui/core/Radio';
+import Toolbar from '@material-ui/core/Toolbar';
+import Button from '@material-ui/core/Button';
+import AppBar from '@material-ui/core/AppBar';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '@material-ui/core/DialogTitle';
 
 //先準備相關資訊
 var instance = axios.create({
   baseURL: 'http://59.126.125.77:8000'
 });
 var getInfos = require('./stockInfos.js')
+var account = require('./account.js')
 
 //顏色定義
 var line_chart_list = {
@@ -131,6 +137,16 @@ const styles = theme => ({
     marginTop: '5%',
     marginLeft: '5%',
     marginright: '5%'
+  },
+  root: {
+    flexGrow: 1,
+  },
+  flex: {
+    flexGrow: 1,
+  },
+  menuButton: {
+    marginLeft: -12,
+    marginRight: 20,
   },
 });
 function NoOptionsMessage(props) {
@@ -234,7 +250,10 @@ class App extends Component {
       open2: false,
       open3: false,
       line_chart_list: line_chart_list,
-      list_type: '1_month'
+      login_open: false, //跳窗登入
+      msg_open: false, //訊息顯示
+      msg: "", //提示用訊息變數
+      register_open: false, //跳窗註冊
     }
 
     var url = "/getStock/list/ALL";
@@ -284,13 +303,6 @@ class App extends Component {
     stock_no = event.label;
     this.handleChange_show_chart();
   }
-
-  /*   handleChange_type(event) {
-      // event.target 是當前的 DOM elment
-      // 從 event.target.value 取得 user 剛輸入的值
-      // 將 user 輸入的值更新回 state
-      list_type = event.target.value;
-    } */
 
   handleChange_type = key => (event, value) => {
     this.state.list_type = value;
@@ -372,13 +384,106 @@ class App extends Component {
     this.setState(state => ({ open3: !state.open3 }));
   };
 
+  //開啟登入窗
+  login_open = () => {
+    this.setState(state => ({ login_open: true }));
+  };
+
+  //確認登入
+  login_accept = () => {
+
+    var acc = document.getElementById("login_account").value;
+    var pwd = document.getElementById("login_password").value;
+
+    //判斷登入成功否
+    var succes = account.login(acc, pwd)
+
+    //判斷成功或失敗
+    if (succes) {
+      //提示成功
+      this.setState(state => ({ msg: "登入成功" }));
+      this.setState(state => ({ msg_open: true }));
+
+      //關閉輸入窗
+      this.setState(state => ({ login_open: false }));
+    }
+    else {
+      //失敗
+      this.setState(state => ({ msg: "登入失敗，請重新確認帳號及密碼！" }));
+      this.setState(state => ({ msg_open: true }));
+    }
+  };
+
+  //放棄登入
+  login_cancel = () => {
+    this.setState(state => ({ login_open: false }));
+  };
+
+  //開啟登入窗
+  register_open = () => {
+    this.setState(state => ({ register_open: true }));
+  };
+
+
+  //確認註冊
+  register_accept = () => {
+
+    var acc  = document.getElementById("register_account").value;
+    var pwd  = document.getElementById("register_password").value; 
+    var pwd2 = document.getElementById("register_password2").value; 
+    var mail = document.getElementById("register_mail").value; 
+
+    //檢核兩個密碼是否一致
+    if (pwd != pwd2)
+    {
+      //失敗
+      this.setState(state => ({ msg: "兩次密碼輸入不一致，請重新確認！" }));
+      this.setState(state => ({ msg_open: true }));
+    }
+
+    //判斷登入成功否
+    var succes = account.login(acc,pwd,mail) 
+
+    //判斷成功或失敗
+    if (succes) {
+      //提示成功
+      this.setState(state => ({ msg: "註冊成功" }));
+      this.setState(state => ({ msg_open: true }));
+
+      //關閉輸入窗
+      this.setState(state => ({ login_open: false }));
+    }
+    else {
+      //失敗
+      this.setState(state => ({ msg: "註冊失敗！" }));
+      this.setState(state => ({ msg_open: true }));
+    }
+
+  };
+
+  //放棄註冊
+  register_cancel = () => {
+    this.setState(state => ({ register_open: false }));
+  };
+
+  //點選確認後關閉
+  msg_close = () => {
+    this.setState(state => ({ msg_open: false }));
+  };
+
   render() {
     const { classes } = this.props;
     return (
       <div>
         <div className='top'>
-          <font className='title' face="微軟正黑體" size="8"><b>股票查詢</b></font><font className='title' face="微軟正黑體" size="3"><b>T.H</b></font>
-          <p />
+          <AppBar position="static">
+            <Toolbar>
+              <Typography variant="title" color="inherit" className={classes.flex}>
+                <font className='title' face="微軟正黑體" size="8"><b>股票查詢</b></font><font className='title' face="微軟正黑體" size="3"><b>T.H</b></font>
+              </Typography>
+              <Button color="inherit" onClick={this.login_open}>Login</Button>
+            </Toolbar>
+          </AppBar>
         </div>
         <div className='menu'>
           <ListItem button onClick={this.expand_option}>
@@ -517,6 +622,84 @@ class App extends Component {
               style={{ height: '400px', width: '95%' }}
               className='react_for_echarts' />
           </div>
+        </div>
+
+        <div>
+          <Dialog open={this.state.login_open} onClose={this.login_cancel} aria-labelledby="form-dialog-title" >
+            <DialogTitle id="form-dialog-title">請輸入帳號以及密碼：</DialogTitle>
+            <DialogContent>
+              <TextField
+                autoFocus
+                margin="dense"
+                id="login_account"
+                label="請輸入帳號"
+                type="account"
+                fullWidth
+              />
+              <TextField
+                margin="dense"
+                id="login_password"
+                label="請輸入密碼"
+                type="password"
+                fullWidth
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={this.register_open} color="primary">註冊新帳號</Button>
+              <Button onClick={this.login_cancel} color="primary">放棄</Button>
+              <Button onClick={this.login_accept} color="primary">確認</Button>
+            </DialogActions>
+          </Dialog>
+        </div>
+
+        <div>
+          <Dialog open={this.state.msg_open} onClose={this.msg_close} aria-labelledby="form-dialog-title" >
+            <DialogTitle id="form-dialog-title">{this.state.msg}</DialogTitle>
+            <DialogActions>
+              <Button onClick={this.msg_close} color="primary">確認</Button>
+            </DialogActions>
+          </Dialog>
+        </div>
+
+        <div>
+          <Dialog open={this.state.register_open} onClose={this.register_cancel} aria-labelledby="form-dialog-title" >
+            <DialogTitle id="form-dialog-title">請輸入以下資訊以完成註冊步驟：</DialogTitle>
+            <DialogContent>
+              <TextField
+                autoFocus
+                margin="dense"
+                id="register_account"
+                label="請輸入帳號"
+                type="account"
+                fullWidth
+              />
+              <TextField
+                margin="dense"
+                id="register_password"
+                label="請輸入密碼"
+                type="password"
+                fullWidth
+              />
+              <TextField
+                margin="dense"
+                id="register_password2"
+                label="請再次輸入密碼"
+                type="password"
+                fullWidth
+              />
+              <TextField
+                margin="dense"
+                id="register_mail"
+                label="請輸入聯絡信箱"
+                type="mail"
+                fullWidth
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={this.register_cancel} color="primary">放棄</Button>
+              <Button onClick={this.register_accept} color="primary">確認</Button>
+            </DialogActions>
+          </Dialog>
         </div>
       </div>
     )

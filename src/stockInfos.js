@@ -2,10 +2,6 @@ import axios from 'axios'
 
 var url_server = "http://59.126.125.77:8000/";
 
-var instance = axios.create({
-    baseURL: 'http://59.126.125.77:8000'
-});
-
 function option() {
     this.type = {
         title: {
@@ -33,33 +29,6 @@ function option() {
         }]
     };
 };
-
-//圖表option
-/* var otion = {
-    title: {
-        text: '個股單價',
-        x: 'center',
-        align: 'right',
-        y: '15px'
-    },
-    xAxis: {
-        type: 'category',
-        data: []
-    },
-    yAxis: {
-        name: '單價:元(NT)',
-        type: 'value',
-        min: 0, //最小
-        max: 500, //最大
-    },
-    tooltip: { //提示
-        trigger: 'axis'
-    },
-    series: [{
-        data: [],
-        type: 'line'
-    }]
-}; */
 
 export function getDate(list_type) {
 

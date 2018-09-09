@@ -91,6 +91,15 @@ app.get('/getStock/list/:wc', function (request, response) { //取得股票清�
     response.writeHead(200, { 'Content-Type': 'text/html' });
     //response.write('<head><meta charset="utf-8"/></head>');
 
+    var ls_tws003;
+    var ls_sql = "SELECT DISTINCT twse001,name003 FROM stock.twse_t LEFT JOIN stock.name_t ON twse001 = name001 "
+    if (ls_wc != "ALL") {
+        ls_sql = ls_sql + " WHERE twse001 LIKE '" + ls_wc + "%' Limit 50"
+    }
+    else {
+        ls_sql = ls_sql + " Limit 50"
+    }
+
     ls_twse003 = connection.query(ls_sql, function (error, rows, fields) {
         //檢查是否有錯誤
         if (error) {
@@ -367,8 +376,8 @@ app.get('/getTraceAmount/:id/:sdate/:edate', function (request, response) { //�
     });
 })
 
-app.get('/register', function (request, response) { //註冊帳號
-    console.log("Request:getStockPrices");
+app.post('/register', function (request, response) { //註冊帳號
+    console.log("Request:register");
     var body = request.body;
     var j_body = JSON.parse(body);
     //{message:'xxxxxxxxx'} ->加密
@@ -408,16 +417,19 @@ app.get('/register', function (request, response) { //註冊帳號
     });
 })
 
-app.get('/login', function (request, response) { //註冊帳號
-    console.log("Request:getStockPrices");
-    var body = request.body;
-    var j_body = JSON.parse(body);
-    //{message:'xxxxxxxxx'} ->加密
+app.post('/login', function (request, response) { //註冊帳號
+    console.log("Request:login");
 
-    //加解密模組
-    var msg_encoded = j_body.message;
-    var msg_dncoded = CryptoJS.AES.decrypt(msg_encoded, 'tree0132');
-    var infos = JSON.parse(msg_dncoded);
+    response.writeHead(200,{
+        "Access-Control-Allow-Origin": "http://59.126.125.77",
+        "Access-Control-Allow-Methods":"GET, POST, OPTIONS, PUT, PATCH, DELETE",
+        "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"});
+        
+    var body = request.params.body;
+    console.log("response:" + response.toString());
+
+    var j_body = decoder(body);
+    var infos = JSON.parse(j_body);
 
     response.writeHead(201, { 'Content-Type': 'text/plain' });
 
@@ -438,3 +450,25 @@ app.get('/login', function (request, response) { //註冊帳號
 
 app.listen(8000)
 console.log("Serve run in port 8000!")
+
+//加密用
+async function decoder(encryptedBase64Str) {
+
+    var CryptoJS = require("crypto-js");
+    var keyStr = "ka0132oftreeNode"
+
+    console.log("encryptedBase64Str:"+encryptedBase64Str)
+
+    // 解密
+    var decryptedData = CryptoJS.AES.decrypt(encryptedBase64Str, key, {
+        mode: CryptoJS.mode.ECB,
+        padding: CryptoJS.pad.Pkcs7
+    });
+
+    // 解密，需要按照Utf8的方式将明文转位字符串
+    var decryptedStr = decryptedData.toString(CryptoJS.enc.Utf8);
+    console.log("decryptedStr:"+decryptedStr)
+
+    return decryptedStr;
+
+}
