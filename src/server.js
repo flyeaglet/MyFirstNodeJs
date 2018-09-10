@@ -1,5 +1,6 @@
 //載入所需模組
 var express = require('express');
+var bodyParser = require("body-parser");
 var app = express();
 var port = process.env.PORT || 8080;
 var cors = require('cors')
@@ -8,6 +9,8 @@ var mysql = require('mysql');
 
 //建立server連線
 app.use(cors())
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 //建立連線
 var connection = mysql.createConnection({
@@ -420,29 +423,37 @@ app.post('/register', function (request, response) { //註冊帳號
 app.post('/login', function (request, response) { //註冊帳號
     console.log("Request:login");
 
-    response.writeHead(200,{
+    response.writeHead(200, {
         "Access-Control-Allow-Origin": "http://59.126.125.77",
-        "Access-Control-Allow-Methods":"GET, POST, OPTIONS, PUT, PATCH, DELETE",
-        "Access-Control-Allow-Headers":"Origin, X-Requested-With, Content-Type, Accept"});
-        
-    var body = request.params.body;
-    console.log("response:" + response.toString());
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS, PUT, PATCH, DELETE",
+        "Access-Control-Allow-Headers": "Origin, X-Requested-With, Content-Type, Accept"
+    });
 
-    var j_body = decoder(body);
+    //取得訊息
+    var body = request.body.msg;
+
+    //還原
+    var j_body = msgdecoder(body);
     var infos = JSON.parse(j_body);
 
-    response.writeHead(201, { 'Content-Type': 'text/plain' });
-
     //檢核帳密是否正確
-    var user_info = { user001: infos.acc, user002: infos.pwd, user003: today, user004: infos.mail, user005: infos.gender };
-    connection.query("SELECT COUNT(1) FROM stock.user_t WHERE user001 = ? AND user002 = ?", infos, function (error, rows, fields) {
+    var user001 = infos.account;
+    var user002 = infos.password;
+    var user_info = { "user001": user001, "user002": user002 };
+    connection.query("SELECT COUNT(1) cnt FROM stock.user_t WHERE user001 = ? AND user002 = ?", [user001, user002], function (error, rows, fields) {
         //檢查是否有錯誤
         if (error) {
             throw error;
-            response.end('登入失敗，請重新檢驗帳號或密碼是否錯誤！');
+            response.end('登入異常！');
         }
         else {
-            response.end('登入成功！');
+            if (rows[0].cnt === 1) {
+                response.end('登入成功！');
+            }
+            else
+            {
+                response.end('登入失敗，請重新檢驗帳號或密碼是否錯誤！');
+            }
         }
     });
 
@@ -452,12 +463,13 @@ app.listen(8000)
 console.log("Serve run in port 8000!")
 
 //加密用
-async function decoder(encryptedBase64Str) {
+function msgdecoder(encryptedBase64Str) {
 
     var CryptoJS = require("crypto-js");
     var keyStr = "ka0132oftreeNode"
+    var key = CryptoJS.enc.Utf8.parse(keyStr);
 
-    console.log("encryptedBase64Str:"+encryptedBase64Str)
+    console.log("encryptedBase64Str:" + encryptedBase64Str)
 
     // 解密
     var decryptedData = CryptoJS.AES.decrypt(encryptedBase64Str, key, {
@@ -467,7 +479,7 @@ async function decoder(encryptedBase64Str) {
 
     // 解密，需要按照Utf8的方式将明文转位字符串
     var decryptedStr = decryptedData.toString(CryptoJS.enc.Utf8);
-    console.log("decryptedStr:"+decryptedStr)
+    console.log("decryptedStr:" + decryptedStr)
 
     return decryptedStr;
 

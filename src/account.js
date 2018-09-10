@@ -11,7 +11,7 @@ export async function login(acc, pwd) {
     console.log("url:"+url)
 
     var infos = { "account": acc, "password": pwd };
-    var msg = await encoder(infos);
+    var msg = {"msg":await encoder(infos)};
     var login_chk = false; //預設false
 
     //var msg_encoded = CryptoJS.AES.encrypt(msg, 'tree0132');
