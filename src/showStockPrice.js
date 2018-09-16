@@ -39,12 +39,12 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 
 //先準備相關資訊
 var instance = axios.create({
-  baseURL: 'http://59.126.125.77:8000'
+  baseURL: 'http://localhost:8000'
 });
 var getInfos = require('./stockInfos.js')
 var account = require('./account.js')
 
-//顏色定義
+//Module variable
 var line_chart_list = {
   xAxis: {
     type: 'category',
@@ -61,6 +61,12 @@ var line_chart_list = {
     smooth: true
   }]
 };
+
+//使用者資訊
+var user_info = {
+  logined: false, //是否已經登入
+  account: "", //帳號
+}
 
 //預設action 
 var stock_no = "";
@@ -254,21 +260,22 @@ class App extends Component {
       msg_open: false, //訊息顯示
       msg: "", //提示用訊息變數
       register_open: false, //跳窗註冊
+      login_disable: false, //是否顯示login按鈕
+      logout_disable: true, //是否顯示logout按鈕
     }
 
     var url = "/getStock/list/ALL";
-    instance.get(url).
-      then(response => {
-        var data = response.data;
-        var ls_stock_list = new Array()
-        console.log(data);
-        for (var i = 0; i < data.length; i++) {
-          console.log(data[i].id + "(" + data[i].name + ")");
-          ls_stock_list[i] = { label: data[i].id + "(" + data[i].name + ")" };
-        }
-        stock_list = ls_stock_list;
-        this.forceUpdate();
-      });
+    instance.get(url).then(response => {
+      var data = response.data;
+      var ls_stock_list = new Array()
+      console.log(data);
+      for (var i = 0; i < data.length; i++) {
+        console.log(data[i].id + "(" + data[i].name + ")");
+        ls_stock_list[i] = { label: data[i].id + "(" + data[i].name + ")" };
+      }
+      stock_list = ls_stock_list;
+      this.forceUpdate();
+    });
 
     //this.handleClick = this.handleClick.bind(this);
     this.handleChange_no = this.handleChange_no.bind(this);
@@ -277,23 +284,24 @@ class App extends Component {
     this.handleChange_getTradingVolume = this.handleChange_getTradingVolume.bind(this); //交易量
     this.handleChange_getStockPrices = this.handleChange_getStockPrices.bind(this); //收盤價
     this.handleChange_type = this.handleChange_type.bind(this); //日期區間(type)
+    this.login_accept = this.login_accept.bind(this); //登入確認
+    this.register_accept = this.register_accept.bind(this); //註冊確認
 
   }
 
   handleChange_no_edit(value) {
     var url = "/getStock/list/" + value;
-    instance.get(url).
-      then(response => {
-        var data = response.data;
-        var ls_stock_list = new Array()
-        console.log(data);
-        for (var i = 0; i < data.length; i++) {
-          console.log(data[i].id + "(" + data[i].name + ")");
-          ls_stock_list[i] = { label: data[i].id + "(" + data[i].name + ")" };
-        }
-        stock_list = ls_stock_list;
-        this.forceUpdate();
-      });
+    instance.get(url).then(response => {
+      var data = response.data;
+      var ls_stock_list = new Array()
+      console.log(data);
+      for (var i = 0; i < data.length; i++) {
+        console.log(data[i].id + "(" + data[i].name + ")");
+        ls_stock_list[i] = { label: data[i].id + "(" + data[i].name + ")" };
+      }
+      stock_list = ls_stock_list;
+      this.forceUpdate();
+    });
   }
 
   handleChange_no(event) {
@@ -390,28 +398,38 @@ class App extends Component {
   };
 
   //確認登入
-  login_accept = () => {
+  async login_accept() {
 
     var acc = document.getElementById("login_account").value;
     var pwd = document.getElementById("login_password").value;
 
-    //判斷登入成功否
-    var succes = account.login(acc, pwd)
+    //判斷登入成功否 
+    var login_msg = await account.login(acc, pwd);
+    var s_login_msg = JSON.parse(login_msg);
 
     //判斷成功或失敗
-    if (succes) {
+    console.log("test")
+    if (s_login_msg.success) {
       //提示成功
-      this.setState(state => ({ msg: "登入成功" }));
+      this.setState(state => ({ msg: s_login_msg.msg }));
       this.setState(state => ({ msg_open: true }));
 
       //關閉輸入窗
       this.setState(state => ({ login_open: false }));
+
+      //紀錄登入狀態與資訊
+      user_info.logined = true; //已登入
+      user_info.account = acc;
+
+      //重整login logout按鈕
+      this.setState(state => ({ login_disable: true, logout_disable: false }));
     }
     else {
       //失敗
-      this.setState(state => ({ msg: "登入失敗，請重新確認帳號及密碼！" }));
+      this.setState(state => ({ msg: s_login_msg.msg }));
       this.setState(state => ({ msg_open: true }));
     }
+
   };
 
   //放棄登入
@@ -426,39 +444,38 @@ class App extends Component {
 
 
   //確認註冊
-  register_accept = () => {
+  async register_accept() {
 
-    var acc  = document.getElementById("register_account").value;
-    var pwd  = document.getElementById("register_password").value; 
-    var pwd2 = document.getElementById("register_password2").value; 
-    var mail = document.getElementById("register_mail").value; 
+    var acc = document.getElementById("register_account").value;
+    var pwd = document.getElementById("register_password").value;
+    var pwd2 = document.getElementById("register_password2").value;
+    var mail = document.getElementById("register_mail").value;
 
     //檢核兩個密碼是否一致
-    if (pwd != pwd2)
-    {
+    if (pwd != pwd2) {
       //失敗
       this.setState(state => ({ msg: "兩次密碼輸入不一致，請重新確認！" }));
       this.setState(state => ({ msg_open: true }));
     }
 
-    //判斷登入成功否
-    var succes = account.login(acc,pwd,mail) 
+    //判斷註冊成功否 
+    var register_msg = await account.register(acc, pwd, mail);
+    var s_register_msg = JSON.parse(register_msg);
 
     //判斷成功或失敗
-    if (succes) {
+    console.log("test")
+    if (s_register_msg.success) {
       //提示成功
-      this.setState(state => ({ msg: "註冊成功" }));
+      this.setState(state => ({ msg: s_register_msg.msg }));
       this.setState(state => ({ msg_open: true }));
-
       //關閉輸入窗
-      this.setState(state => ({ login_open: false }));
+      this.setState(state => ({ register_open: false }));
     }
     else {
       //失敗
-      this.setState(state => ({ msg: "註冊失敗！" }));
+      this.setState(state => ({ msg: s_register_msg.msg }));
       this.setState(state => ({ msg_open: true }));
     }
-
   };
 
   //放棄註冊
@@ -471,6 +488,16 @@ class App extends Component {
     this.setState(state => ({ msg_open: false }));
   };
 
+  //登出
+  logout = () => {
+    //紀錄登入狀態與資訊
+    user_info.logined = false; //未登入
+    user_info.account = "";
+
+    //重整login logout按鈕
+    this.setState(state => ({ login_disable: false, logout_disable: true }));
+  };
+
   render() {
     const { classes } = this.props;
     return (
@@ -481,7 +508,8 @@ class App extends Component {
               <Typography variant="title" color="inherit" className={classes.flex}>
                 <font className='title' face="微軟正黑體" size="8"><b>股票查詢</b></font><font className='title' face="微軟正黑體" size="3"><b>T.H</b></font>
               </Typography>
-              <Button color="inherit" onClick={this.login_open}>Login</Button>
+              <Button color="inherit" disabled={this.state.login_disable} onClick={this.login_open}>Login</Button>
+              <Button color="inherit" disabled={this.state.logout_disable} onClick={this.logout}>Logout</Button>
             </Toolbar>
           </AppBar>
         </div>
@@ -652,14 +680,12 @@ class App extends Component {
           </Dialog>
         </div>
 
-        <div>
-          <Dialog open={this.state.msg_open} onClose={this.msg_close} aria-labelledby="form-dialog-title" >
-            <DialogTitle id="form-dialog-title">{this.state.msg}</DialogTitle>
-            <DialogActions>
-              <Button onClick={this.msg_close} color="primary">確認</Button>
-            </DialogActions>
-          </Dialog>
-        </div>
+        <Dialog open={this.state.msg_open} onClose={this.msg_close} aria-labelledby="form-dialog-title" >
+          <DialogTitle id="form-dialog-title">{this.state.msg}</DialogTitle>
+          <DialogActions>
+            <Button onClick={this.msg_close} color="primary">確認</Button>
+          </DialogActions>
+        </Dialog>
 
         <div>
           <Dialog open={this.state.register_open} onClose={this.register_cancel} aria-labelledby="form-dialog-title" >

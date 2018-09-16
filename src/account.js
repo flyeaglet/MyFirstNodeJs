@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 var CryptoJS = require("crypto-js");
-var url_server = "http://59.126.125.77:8000/"; //server ip
+var url_server = "http://122.117.34.101:8000/"; //server ip
 //var util = require("util")
 
 //登入
@@ -12,28 +12,19 @@ export async function login(acc, pwd) {
 
     var infos = { "account": acc, "password": pwd };
     var msg = {"msg":await encoder(infos)};
-    var login_chk = false; //預設false
-
-    //var msg_encoded = CryptoJS.AES.encrypt(msg, 'tree0132');
+    var res_msg = {"success":"","msg":""}
 
     try {
-        const response = await axios.post(url,msg);
-
-        if (true) {
-            login_chk = true;
-        }
-        else {
-            login_chk = false;
-        }
+        var response = await axios.post(url,msg);
+        res_msg = {"success":response.data.success,"msg":response.data.msg}
+        var s_res_msg = JSON.stringify(res_msg)
     }
     catch (e) {
         console.log(e); // Network Error
         console.log(e.status); // undefined
         console.log(e.code); // undefined
     }
-
-    return login_chk;
-
+    return s_res_msg;
 }
 
 //登出
@@ -42,15 +33,32 @@ export function logout() {
 }
 
 //註冊
-export function register() {
+export async function register(acc, pwd, mail, sex) {
+    //註冊驗證
+    var url = url_server + "register";
+    console.log("url:"+url)
 
+    var infos = { "account": acc, "password": pwd, "mail": mail, "sex": sex,};
+    var msg = {"msg":await encoder(infos)};
+
+    var res_msg = {"success":"","msg":""}
+
+    try {
+        var response = await axios.post(url,msg);
+        res_msg = {"success":response.data.success,"msg":response.data.msg}
+        var s_res_msg = JSON.stringify(res_msg)
+    }
+    catch (e) {
+        console.log(e); // Network Error
+        console.log(e.status); // undefined
+        console.log(e.code); // undefined
+    }
+    return s_res_msg;
 }
 
 //加密用
 async function encoder(infos)
 {
-    var CryptoJS = require("crypto-js");
-
     var plaintText = JSON.stringify(infos);
     var keyStr = "ka0132oftreeNode"
 
@@ -77,7 +85,7 @@ async function encoder(infos)
     
     // 将密文转为Base64的字符串
     // 只有Base64类型的字符串密文才能对其进行解密
-    var encryptedBase64Str = CryptoJS.enc.Base64.stringify(encryptedHexStr);
+    encryptedBase64Str = CryptoJS.enc.Base64.stringify(encryptedHexStr);
     
     return encryptedBase64Str;
 

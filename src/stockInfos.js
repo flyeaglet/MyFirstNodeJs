@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-var url_server = "http://59.126.125.77:8000/";
+var url_server = "http://122.117.34.101:8000/";
 
 function option() {
     this.type = {
@@ -58,6 +58,8 @@ export function getDate(list_type) {
             break;
         case "all_year":
             s_time_src.setYear(s_time_src.getYear() - 100);
+            break;
+        default :
             break;
     }
 

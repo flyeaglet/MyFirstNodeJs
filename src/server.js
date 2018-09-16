@@ -381,53 +381,63 @@ app.get('/getTraceAmount/:id/:sdate/:edate', function (request, response) { //�
 
 app.post('/register', function (request, response) { //註冊帳號
     console.log("Request:register");
-    var body = request.body;
-    var j_body = JSON.parse(body);
-    //{message:'xxxxxxxxx'} ->加密
 
-    //加解密模組
-    var msg_encoded = j_body.message;
-    var msg_dncoded = CryptoJS.AES.decrypt(msg_encoded, 'tree0132');
-    var infos = JSON.parse(msg_dncoded);
+    //取得訊息
+    var body = request.body.msg;
 
-    response.writeHead(201, { 'Content-Type': 'text/plain' });
+    //還原
+    var j_body = msgdecoder(body);
+    console.log("decode:" + j_body)
+    var infos = JSON.parse(j_body);
+    console.log("decoded")
 
     //檢核帳號是否已經存在
-    connection.query("SELECT COUNT(1) FROM stock.user_t WHERE user001 = ? ", infos.acc, function (error, rows, fields) {
+    connection.query("SELECT COUNT(1) cnt FROM stock.user_t WHERE user001 = ? ", infos.account, function (error, rows, fields) {
         //檢查是否有錯誤
+        var res;
         if (error) {
             throw error;
-            response.end(error);
+            res = { "success": false, "msg": "登入失敗，系統忙碌中請稍後再試(1)！" }
+            response.end(JSON.stringify(res));
         }
         else {
-            response.end('此帳號已存在，請重新註冊！');
+            if (rows[0].cnt > 0) {
+                res = { "success": false, "msg": "此帳號已存在，請重新註冊！" }
+                response.end(JSON.stringify(res));
+            }
+            else {
+                console.log("檢核通過, 開始準備寫入註冊資訊!")
+            }
         }
     });
-
+    console.log("insert")
     //資料撈取
     var today = new Date();
-    var user_info = { user001: infos.acc, user002: infos.pwd, user003: today, user004: infos.mail, user005: infos.gender };
+    var user_info = {
+        user001: infos.account,
+        user002: infos.password,
+        user003: today,
+        user004: infos.mail,
+        user005: ""
+    };
 
-    connection.query("INSERT INTO user_t (user001,user002,user003,user004,user005) VALUES ?", user_info, function (error, rows, fields) {
+    connection.query("INSERT INTO stock.user_t SET ?", user_info, function (error, rows, fields) {
         //檢查是否有錯誤
         if (error) {
             throw error;
-            response.end(error);
+            res = { "success": false, "msg": "登入失敗，系統忙碌中請稍後再試(2)！" }
+            response.end(JSON.stringify(res));
         }
         else {
-            response.end('註冊成功，請重新登入！');
+            res = { "success": true, "msg": "註冊成功，請重新登入！" }
+            response.end(JSON.stringify(res));
         }
     });
+
 })
 
 app.post('/login', function (request, response) { //註冊帳號
     console.log("Request:login");
-
-    response.writeHead(200, {
-        "Access-Control-Allow-Origin": "http://59.126.125.77",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS, PUT, PATCH, DELETE",
-        "Access-Control-Allow-Headers": "Origin, X-Requested-With, Content-Type, Accept"
-    });
 
     //取得訊息
     var body = request.body.msg;
@@ -442,17 +452,24 @@ app.post('/login', function (request, response) { //註冊帳號
     var user_info = { "user001": user001, "user002": user002 };
     connection.query("SELECT COUNT(1) cnt FROM stock.user_t WHERE user001 = ? AND user002 = ?", [user001, user002], function (error, rows, fields) {
         //檢查是否有錯誤
+        var res;
         if (error) {
             throw error;
-            response.end('登入異常！');
+            res = { "success": false, "msg": "登入異常！" }
+            console.log("1:" + JSON.stringify(res));
+            response.end(JSON.stringify(res));
         }
         else {
+            console.log("比對數:" + rows[0].cnt)
             if (rows[0].cnt === 1) {
-                response.end('登入成功！');
+                res = { "success": true, "msg": "登入成功！" }
+                console.log("2:" + JSON.stringify(res));
+                response.end(JSON.stringify(res));
             }
-            else
-            {
-                response.end('登入失敗，請重新檢驗帳號或密碼是否錯誤！');
+            else {
+                res = { "success": false, "msg": "登入失敗，請重新檢驗帳號或密碼是否錯誤！" }
+                console.log("3:" + JSON.stringify(res));
+                response.end(JSON.stringify(res));
             }
         }
     });
