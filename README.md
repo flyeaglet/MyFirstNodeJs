@@ -12,3 +12,4 @@
 <p>Web前端:</p>
 <p><p>index.js (入口 port3000)</p>
 <p>showStockPrice.js (抓取後端資料並轉為echart圖形)</p>
+<p> structure.xml開啟方式 https://www.draw.io </p>
