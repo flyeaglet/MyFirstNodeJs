@@ -5,6 +5,8 @@ import classNames from 'classnames';
 import Select from 'react-select';
 import { emphasize } from '@material-ui/core/styles/colorManipulator';
 
+import Stock from './stock'; //股票區塊
+
 //material-ui
 import { withStyles } from "@material-ui/core/styles";
 import SearchIcon from '@material-ui/icons/Search';
@@ -41,7 +43,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 var instance = axios.create({
   baseURL: 'http://localhost:8000'
 });
-var getInfos = require('./stockInfos.js')
+var getInfos = require('./getStockInfo.js')
 var account = require('./account.js')
 
 //Module variable
@@ -72,8 +74,6 @@ var user_info = {
 var stock_no = "";
 var selected_page_desc = '收盤價歷史紀錄'; //所在頁面說明
 var selected_page = 'getStockPrices'; //所在頁面(預設為價格頁)
-
-var test = <Button color="inherit" >test2</Button>;
 
 //取得股票清單
 var stock_list = [];
@@ -410,7 +410,6 @@ class App extends Component {
     var s_login_msg = JSON.parse(login_msg);
 
     //判斷成功或失敗
-    console.log("test")
     if (s_login_msg.success) {
       //提示成功
       this.setState(state => ({ msg: s_login_msg.msg }));
@@ -465,7 +464,6 @@ class App extends Component {
     var s_register_msg = JSON.parse(register_msg);
 
     //判斷成功或失敗
-    console.log("test")
     if (s_register_msg.success) {
       //提示成功
       this.setState(state => ({ msg: s_register_msg.msg }));
@@ -512,7 +510,6 @@ class App extends Component {
               </Typography>
               <Button color="inherit" disabled={this.state.login_disable} onClick={this.login_open}>Login</Button>
               <Button color="inherit" disabled={this.state.logout_disable} onClick={this.logout}>Logout</Button>
-              {test}
             </Toolbar>
           </AppBar>
         </div>
@@ -612,48 +609,7 @@ class App extends Component {
           </Collapse>
         </div>
 
-        <div className='parent'>
-          <div className='search'><div className='search'>
-            <font face="微軟正黑體" size="8"><b> {selected_page_desc} </b></font>
-            <p />
-            請挑選要查詢的股票代碼 :
-              <Select
-              classes={classes}
-              options={stock_list}
-              components={components}
-              value={this.stock_no}
-              onChange={this.handleChange_no}
-              placeholder="請選擇欲查詢的股票代碼"
-              autoWidth="true"
-              onInputChange={this.handleChange_no_edit}
-              native="true"
-            />
-            <p />
-            查詢區間
-            <Grid item xs={12}>
-              <FormControl component="fieldset">
-                <RadioGroup row name="avatar" aria-label="avatar" value={this.state.list_type} onChange={this.handleChange_type('list_type')}>
-                  <FormControlLabel value="1_month" control={<Radio />} label="最近一個月" />
-                  <FormControlLabel value="3_month" control={<Radio />} label="最近三個月" />
-                  <FormControlLabel value="6_mounth" control={<Radio />} label="最近半年" />
-                  <FormControlLabel value="1_year" control={<Radio />} label="最近一年" />
-                  <FormControlLabel value="3_year" control={<Radio />} label="最近三年" />
-                  <FormControlLabel value="all_year" control={<Radio />} label="全部資料" />
-                </RadioGroup>
-              </FormControl>
-            </Grid>
-            <hr />
-            <p>目前挑選的股票代碼為:{stock_no}</p>
-            <p />
-            <hr />
-          </div></div>
-          <div className='child'>
-            <ReactEcharts
-              option={line_chart_list}
-              style={{ height: '400px', width: '95%' }}
-              className='react_for_echarts' />
-          </div>
-        </div>
+        <Stock />
 
         <div>
           <Dialog open={this.state.login_open} onClose={this.login_cancel} aria-labelledby="form-dialog-title" >
