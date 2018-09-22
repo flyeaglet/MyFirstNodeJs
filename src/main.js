@@ -1,11 +1,9 @@
 import React, { Component } from 'react';
-import ReactEcharts from 'echarts-for-react';
 import axios from 'axios';
 import classNames from 'classnames';
-import Select from 'react-select';
 import { emphasize } from '@material-ui/core/styles/colorManipulator';
-
 import Stock from './stock'; //股票區塊
+import Account from './account'; //帳號區塊
 
 //material-ui
 import { withStyles } from "@material-ui/core/styles";
@@ -26,11 +24,6 @@ import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import Collapse from '@material-ui/core/Collapse';
 import List from '@material-ui/core/List';
-import Grid from '@material-ui/core/Grid';
-import FormControl from '@material-ui/core/FormControl';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import RadioGroup from '@material-ui/core/RadioGroup';
-import Radio from '@material-ui/core/Radio';
 import Toolbar from '@material-ui/core/Toolbar';
 import Button from '@material-ui/core/Button';
 import AppBar from '@material-ui/core/AppBar';
@@ -248,7 +241,7 @@ const components = {
   ValueContainer,
 };
 
-class App extends Component {
+class Main extends Component {
   constructor() {
     super()
     this.state = {
@@ -286,8 +279,6 @@ class App extends Component {
     this.handleChange_getTradingVolume = this.handleChange_getTradingVolume.bind(this); //交易量
     this.handleChange_getStockPrices = this.handleChange_getStockPrices.bind(this); //收盤價
     this.handleChange_type = this.handleChange_type.bind(this); //日期區間(type)
-    this.login_accept = this.login_accept.bind(this); //登入確認
-    this.register_accept = this.register_accept.bind(this); //註冊確認
 
   }
 
@@ -399,105 +390,6 @@ class App extends Component {
     this.setState(state => ({ login_open: true }));
   };
 
-  //確認登入
-  async login_accept() {
-
-    var acc = document.getElementById("login_account").value;
-    var pwd = document.getElementById("login_password").value;
-
-    //判斷登入成功否 
-    var login_msg = await account.login(acc, pwd);
-    var s_login_msg = JSON.parse(login_msg);
-
-    //判斷成功或失敗
-    if (s_login_msg.success) {
-      //提示成功
-      this.setState(state => ({ msg: s_login_msg.msg }));
-      this.setState(state => ({ msg_open: true }));
-
-      //關閉輸入窗
-      this.setState(state => ({ login_open: false }));
-
-      //紀錄登入狀態與資訊
-      user_info.logined = true; //已登入
-      user_info.account = acc;
-
-      //重整login logout按鈕
-      this.setState(state => ({ login_disable: true, logout_disable: false }));
-    }
-    else {
-      //失敗
-      this.setState(state => ({ msg: s_login_msg.msg }));
-      this.setState(state => ({ msg_open: true }));
-    }
-
-  };
-
-  //放棄登入
-  login_cancel = () => {
-    this.setState(state => ({ login_open: false }));
-  };
-
-  //開啟登入窗
-  register_open = () => {
-    this.setState(state => ({ register_open: true }));
-  };
-
-
-  //確認註冊
-  async register_accept() {
-
-    var acc = document.getElementById("register_account").value;
-    var pwd = document.getElementById("register_password").value;
-    var pwd2 = document.getElementById("register_password2").value;
-    var mail = document.getElementById("register_mail").value;
-
-    //檢核兩個密碼是否一致
-    if (pwd != pwd2) {
-      //失敗
-      this.setState(state => ({ msg: "兩次密碼輸入不一致，請重新確認！" }));
-      this.setState(state => ({ msg_open: true }));
-    }
-
-    //判斷註冊成功否 
-    var register_msg = await account.register(acc, pwd, mail);
-    var s_register_msg = JSON.parse(register_msg);
-
-    //判斷成功或失敗
-    if (s_register_msg.success) {
-      //提示成功
-      this.setState(state => ({ msg: s_register_msg.msg }));
-      this.setState(state => ({ msg_open: true }));
-      //關閉輸入窗
-      this.setState(state => ({ register_open: false }));
-    }
-    else {
-      //失敗
-      this.setState(state => ({ msg: s_register_msg.msg }));
-      this.setState(state => ({ msg_open: true }));
-    }
-  };
-
-  //放棄註冊
-  register_cancel = () => {
-    this.setState(state => ({ register_open: false }));
-  };
-
-  //點選確認後關閉
-  msg_close = () => {
-    this.setState(state => ({ msg_open: false }));
-  };
-
-  //登出
-  logout = () => {
-    //紀錄登入狀態與資訊
-    user_info.logined = false; //未登入
-    user_info.account = "";
-
-    //重整login logout按鈕
-    this.setState(state => ({ login_disable: false, logout_disable: true }));
-  };
-
   render() {
     const { classes } = this.props;
     return (
@@ -508,8 +400,7 @@ class App extends Component {
               <Typography variant="title" color="inherit" className={classes.flex}>
                 <font className='title' face="微軟正黑體" size="8"><b>股票查詢</b></font><font className='title' face="微軟正黑體" size="3"><b>T.H</b></font>
               </Typography>
-              <Button color="inherit" disabled={this.state.login_disable} onClick={this.login_open}>Login</Button>
-              <Button color="inherit" disabled={this.state.logout_disable} onClick={this.logout}>Logout</Button>
+              <Account />
             </Toolbar>
           </AppBar>
         </div>
@@ -608,86 +499,9 @@ class App extends Component {
             </List>
           </Collapse>
         </div>
-
         <Stock />
-
-        <div>
-          <Dialog open={this.state.login_open} onClose={this.login_cancel} aria-labelledby="form-dialog-title" >
-            <DialogTitle id="form-dialog-title">請輸入帳號以及密碼：</DialogTitle>
-            <DialogContent>
-              <TextField
-                autoFocus
-                margin="dense"
-                id="login_account"
-                label="請輸入帳號"
-                type="account"
-                fullWidth
-              />
-              <TextField
-                margin="dense"
-                id="login_password"
-                label="請輸入密碼"
-                type="password"
-                fullWidth
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={this.register_open} color="primary">註冊新帳號</Button>
-              <Button onClick={this.login_cancel} color="primary">放棄</Button>
-              <Button onClick={this.login_accept} color="primary">確認</Button>
-            </DialogActions>
-          </Dialog>
-        </div>
-
-        <Dialog open={this.state.msg_open} onClose={this.msg_close} aria-labelledby="form-dialog-title" >
-          <DialogTitle id="form-dialog-title">{this.state.msg}</DialogTitle>
-          <DialogActions>
-            <Button onClick={this.msg_close} color="primary">確認</Button>
-          </DialogActions>
-        </Dialog>
-
-        <div>
-          <Dialog open={this.state.register_open} onClose={this.register_cancel} aria-labelledby="form-dialog-title" >
-            <DialogTitle id="form-dialog-title">請輸入以下資訊以完成註冊步驟：</DialogTitle>
-            <DialogContent>
-              <TextField
-                autoFocus
-                margin="dense"
-                id="register_account"
-                label="請輸入帳號"
-                type="account"
-                fullWidth
-              />
-              <TextField
-                margin="dense"
-                id="register_password"
-                label="請輸入密碼"
-                type="password"
-                fullWidth
-              />
-              <TextField
-                margin="dense"
-                id="register_password2"
-                label="請再次輸入密碼"
-                type="password"
-                fullWidth
-              />
-              <TextField
-                margin="dense"
-                id="register_mail"
-                label="請輸入聯絡信箱"
-                type="mail"
-                fullWidth
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={this.register_cancel} color="primary">放棄</Button>
-              <Button onClick={this.register_accept} color="primary">確認</Button>
-            </DialogActions>
-          </Dialog>
-        </div>
       </div>
     )
   }
 }
-export default withStyles(styles)(App);
+export default withStyles(styles)(Main); 
