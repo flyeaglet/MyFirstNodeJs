@@ -1,6 +1,4 @@
 import React, { Component } from 'react';
-import classNames from 'classnames';
-import { emphasize } from '@material-ui/core/styles/colorManipulator';
 import Stock from './stock'; //股票區塊
 import Account from './account'; //帳號區塊
 
@@ -19,7 +17,7 @@ import Collapse from '@material-ui/core/Collapse';
 import List from '@material-ui/core/List';
 import Toolbar from '@material-ui/core/Toolbar';
 import AppBar from '@material-ui/core/AppBar';
-
+ 
 //Module variable
 const styles = theme => ({
   flex: {
@@ -32,8 +30,10 @@ class Main extends Component {
     super()
     this.state = {
       open: true,
-      open2: false,
+      open2: false, 
       open3: false,
+      choice_name: 'getStockPrices', //stockPrices,tradingVolume
+      choice_desc: '股票收盤價紀錄'
     }
   }
 
@@ -52,11 +52,17 @@ class Main extends Component {
     this.setState(state => ({ open3: !state.open3 }));
   };
 
-  //開啟登入窗
-  login_open = () => {
-    this.setState(state => ({ login_open: true }));
-  };
+  handleChange_getStockPrices = () => {
+    //呼叫並且刷新主要區塊(右下)
+    this.setState(state => ({choice_name:'getStockPrices',choice_desc:'股票收盤價紀錄'}));
 
+  }
+
+  handleChange_getTradingVolume = () => {
+    //呼叫並且刷新主要區塊(右下)
+    this.setState(state => ({choice_name:'getTradingVolume',choice_desc:'股票成交量紀錄'}));
+  }
+  
   render() {
     const { classes } = this.props;
     return (
@@ -166,7 +172,9 @@ class Main extends Component {
             </List>
           </Collapse>
         </div>
-        <Stock />
+
+        <Stock name={this.state.choice_name} desc={this.state.choice_desc} click={this.call} />
+
       </div>
     )
   }

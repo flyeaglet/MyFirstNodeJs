@@ -8,10 +8,10 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
-var account = require('./account.js')
+//var account = require('./account.js')
 var CryptoJS = require("crypto-js");
 
-var url_server = "http:/localhost:8000/"; //server ip
+var url_server = 'http://localhost:8000/'; //server ip
 
 //使用者資訊
 var user_info = {
@@ -36,7 +36,7 @@ const styles = theme => ({
 });
 
 //登入
-export async function login(acc, pwd) {
+async function login(acc, pwd) {
     //登入驗證
     var url = url_server + "login";
     console.log("url:" + url)
@@ -59,12 +59,12 @@ export async function login(acc, pwd) {
 }
 
 //登出
-export function logout() {
+function logout() {
 
 }
 
 //註冊
-export async function register(acc, pwd, mail, sex) {
+async function register(acc, pwd, mail, sex) {
     //註冊驗證
     var url = url_server + "register";
     console.log("url:" + url)
@@ -88,7 +88,7 @@ export async function register(acc, pwd, mail, sex) {
 }
 
 //取得我的最愛
-export async function favorite(acc) {
+async function favorite(acc) {
     //註冊驗證
     var url = url_server + "favorite";
     console.log("url:" + url)
@@ -180,7 +180,7 @@ class Account extends Component {
         var pwd = document.getElementById("login_password").value;
 
         //判斷登入成功否 
-        var login_msg = await account.login(acc, pwd);
+        var login_msg = await login(acc, pwd);
         var s_login_msg = JSON.parse(login_msg);
 
         //判斷成功或失敗
@@ -234,7 +234,7 @@ class Account extends Component {
         }
 
         //判斷註冊成功否 
-        var register_msg = await account.register(acc, pwd, mail);
+        var register_msg = await register(acc, pwd, mail);
         var s_register_msg = JSON.parse(register_msg);
 
         //判斷成功或失敗
