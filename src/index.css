@@ -53,3 +53,12 @@ background-color: #FFFFFF;
   margin-right:10px;
   margin-bottom:5px;
 }
+.card{
+  float: left;
+  height: 10%;
+  width: 23%;
+  margin-left:10px;
+  margin-right:10px;
+  margin-bottom:10px;
+  background-color: rgb(191, 211, 252);
+}

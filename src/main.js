@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Stock from './stock'; //股票區塊
 import Account from './account'; //帳號區塊
+import Favorite from './favorite'; //我的最愛區塊
 
 //material-ui
 import { withStyles } from "@material-ui/core/styles";
@@ -33,7 +34,8 @@ class Main extends Component {
       open2: false, 
       open3: false,
       choice_name: 'getStockPrices', //stockPrices,tradingVolume
-      choice_desc: '股票收盤價紀錄'
+      choice_desc: '股票收盤價紀錄',
+      user: "", //使用者ID
     }
   }
 
@@ -62,6 +64,10 @@ class Main extends Component {
     //呼叫並且刷新主要區塊(右下)
     this.setState(state => ({choice_name:'getTradingVolume',choice_desc:'股票成交量紀錄'}));
   }
+
+  setUser = user_id => {
+    this.setState(state => ({user:user_id}));
+  }
   
   render() {
     const { classes } = this.props;
@@ -73,7 +79,7 @@ class Main extends Component {
               <Typography variant="title" color="inherit" className={classes.flex}>
                 <font className='title' face="微軟正黑體" size="8"><b>股票查詢</b></font><font className='title' face="微軟正黑體" size="3"><b>T.H</b></font>
               </Typography>
-              <Account />
+              <Account setUser={this.setUser} />
             </Toolbar>
           </AppBar>
         </div>
@@ -141,7 +147,7 @@ class Main extends Component {
                 <ListItemIcon>
                   <FavoriteIcon />
                 </ListItemIcon>
-                <ListItemText inset primary="待開發" />
+                <ListItemText inset primary="施工中" />
               </ListItem>
             </List>
           </Collapse>
@@ -159,7 +165,7 @@ class Main extends Component {
                 <ListItemIcon>
                   <HistoryIcon />
                 </ListItemIcon>
-                <ListItemText inset primary="待開發" />
+                <ListItemText inset primary="施工中" />
               </ListItem>
             </List>
             <List className="sub_button" component="div" disablePadding>
@@ -167,13 +173,14 @@ class Main extends Component {
                 <ListItemIcon>
                   <HistoryIcon />
                 </ListItemIcon>
-                <ListItemText inset primary="待開發" />
+                <ListItemText inset primary="施工中" />
               </ListItem>
             </List>
           </Collapse>
         </div>
 
-        <Stock name={this.state.choice_name} desc={this.state.choice_desc} click={this.call} />
+        {false && <Stock name={this.state.choice_name} desc={this.state.choice_desc} user={this.state.user} />}
+        <Favorite name={this.state.choice_name} desc={this.state.choice_desc} user={this.state.user} />
 
       </div>
     )

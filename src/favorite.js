@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
@@ -25,26 +25,29 @@ const styles = {
     },
 };
 
-function showfavorite(acc) {
-    const { classes } = props;
-    const bull = <span className={classes.bullet}>•</span>;
+var ob = <div>test</div>
+var ob2 = <div>test2</div>
+var ob3 = ob+ob2;
 
-    return (
-        <Card className={classes.card}>
-            <CardContent>
-                <Typography className={classes.title} color="textSecondary">
-                    Word of the Day
-        </Typography>
-            </CardContent>
-            <CardActions>
-                <Button size="small">Learn More</Button>
-            </CardActions>
-        </Card>
-    );
+class Favorite extends Component {
+    constructor(props) {
+        super(props)
+        this.state = {
+
+        }
+    }
+
+    render() {
+
+        return (
+            <div>
+            {ob}
+            {ob2}
+            {ob3}
+          </div>
+        )
+    };
 }
 
-SimpleCard.propTypes = {
-    classes: PropTypes.object.isRequired,
-};
 
-export default withStyles(styles)(SimpleCard);
+export default withStyles(styles)(Favorite);

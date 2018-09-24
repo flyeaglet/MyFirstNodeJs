@@ -7,6 +7,8 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import IconButton from '@material-ui/core/IconButton';
+import AccountCircle from '@material-ui/icons/AccountCircle';
 
 //var account = require('./account.js')
 var CryptoJS = require("crypto-js");
@@ -154,8 +156,8 @@ async function encoder(infos) {
 }
 
 class Account extends Component {
-    constructor() {
-        super()
+    constructor(props) {
+        super(props)
         this.state = {
             login_open: false, //跳窗登入
             msg_open: false, //訊息顯示
@@ -198,6 +200,9 @@ class Account extends Component {
 
             //重整login logout按鈕
             this.setState(state => ({ login_disable: true, logout_disable: false }));
+
+            //回傳使用者資訊給上層
+            this.props.setUser(acc);
         }
         else {
             //失敗
@@ -275,8 +280,19 @@ class Account extends Component {
     render() {
         return (
             <div>
-                <Button color="inherit" disabled={this.state.login_disable} onClick={this.login_open}>Login</Button>
-                <Button color="inherit" disabled={this.state.logout_disable} onClick={this.logout}>Logout</Button>
+                {user_info.logined && (
+                    <div>
+                        <IconButton aria-haspopup="true"
+                            onClick={this.handleMenu}
+                            color="inherit" >
+                            <AccountCircle />
+                        </IconButton>
+                        <Button color="inherit" disabled={this.state.logout_disable} onClick={this.logout}>Logout</Button>
+                    </div>
+                )}
+                {!user_info.logined && (
+                    <Button color="inherit" disabled={this.state.login_disable} onClick={this.login_open}>Login</Button>
+                )}
                 <div>
                     <Dialog open={this.state.login_open} onClose={this.login_cancel} aria-labelledby="form-dialog-title" >
                         <DialogTitle id="form-dialog-title">請輸入帳號以及密碼：</DialogTitle>
