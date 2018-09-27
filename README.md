@@ -13,3 +13,5 @@
 <p><p>index.js (入口 port3000)</p>
 <p>showStockPrice.js (抓取後端資料並轉為echart圖形)</p>
 <p> structure.xml開啟方式 https://www.draw.io </p>
+
+<div class="col-sm-12"><div class="row"><div class="col-sm-12"><h1><b>Skills</b><br></h1></div></div><div class="row" title="" data-original-title="" aria-describedby="tooltip547500"><div class="col-sm-4 item"><hr><h1>Programming</h1><div>．Node JS<br></div><div>．React JS<br></div><div>． Android<br></div><div>． JavaScript<br></div><div>． Genero 4gl <br></div></div><div class="col-sm-4 item"><hr><h1>Database Systems</h1><p>．Oracle</p><p>．Mysql<br>．Sqlite</p></div><div class="col-sm-4 item"><hr><h1>IDE</h1><p>．Eclipse</p><p>．Visual Studio Code</p><p>．Generol Studio<br></p></div></div></div>
