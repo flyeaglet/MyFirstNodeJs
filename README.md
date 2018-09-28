@@ -17,19 +17,56 @@
     </figure>
 </div>
 
-
-<p>首次開發node js</p>
-<p>TWSE台灣證券交易所股票爬蟲及前端網頁開發</p>
-<p/>
-<p>爬蟲端:</p>
-<p>main.js (排程用)</p>
-<p>time_to_write.js (指定區間用)</p>
-<p>read_web.js (實際抓取資料並寫入資料庫)</p>
-<p/>
-<p>Web後端:</p>
-<p>Server.js (port8000)</p>
-<p/>
-<p>Web前端:</p>
-<p><p>index.js (入口 port3000)</p>
-<p>showStockPrice.js (抓取後端資料並轉為echart圖形)</p>
-<p> structure.xml開啟方式 https://www.draw.io </p>
+<div class="col-sm-12">
+    <div class="row">
+        <div class="col-sm-12">
+            <h1>
+                <b>架構</b>
+                <br>
+            </h1>
+        </div>
+    </div>
+    <div class="row" data-original-title="" title="">
+        <div class="col-sm-4 item">
+            <hr>
+            <h1>前端
+                <br>
+            </h1>
+            <p>使用React js開發介面</p>
+            <p> index.js (首頁)
+                <br>
+            </p>
+            <p> index.css account.js (帳號)
+                <br>
+            </p>
+            <p>favorite.js (我的最愛)
+                <br>
+            </p>
+            <p>getStockInfo.js (串接後端取得資訊)
+                <br>
+            </p>
+            <p>main.js (主頁面) registerServiceWorker.js
+                <br>
+            </p>
+            <p>stock.js (股票頁面)</p>
+        </div>
+        <div class="col-sm-4 item">
+            <hr>
+            <h1>後端
+                <br>
+            </h1>
+            <p>backend\Server.js
+                <br>
+            </p>
+        </div>
+        <div class="col-sm-4 item">
+            <hr>
+            <h1>爬蟲
+                <br>
+            </h1>
+            <p> crawler\crawler_range.js(區間抓取)</p>
+            <p>crawler\crawler_today.js(當日抓取)</p>
+            <p> crawler\read_web.js(爬蟲本體)</p>
+        </div>
+    </div>
+</div>
