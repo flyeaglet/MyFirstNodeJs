@@ -47,6 +47,7 @@
             <h1>後端
                 <br>
             </h1>
+            <p>使用Node js開發後端Server，提供RESTful API接口提供使用</p>
             <p>backend\Server.js
                 <br>
             </p>
@@ -56,9 +57,10 @@
             <h1>爬蟲
                 <br>
             </h1>
+            <p>使用Node js開發爬蟲工具，包含twse上市股票及tpex上櫃股票，抓取完成後寫入mysql資料庫待用</p>
             <p> crawler\crawler_range.js(區間抓取)</p>
             <p>crawler\crawler_today.js(當日抓取)</p>
-            <p> crawler\read_web.js(爬蟲本體，包含twse上市股票及tpex上櫃股票)</p>
+            <p> crawler\read_web.js(爬蟲本體)</p>
         </div>
     </div>
 </div>
