@@ -18,14 +18,6 @@
 </div>
 
 <div class="col-sm-12">
-    <div class="row">
-        <div class="col-sm-12">
-            <h1>
-                <b>架構</b>
-                <br>
-            </h1>
-        </div>
-    </div>
     <div class="row" data-original-title="" title="">
         <div class="col-sm-4 item">
             <hr>
