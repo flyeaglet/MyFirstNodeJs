@@ -1,3 +1,23 @@
+<div class="col-xs-12">
+    <h1>
+        <b>架構圖</b>
+        <br>
+    </h1>
+    <figure>
+        <a href="https://github.com/PJhunag/MyFirstNodeJs/blob/master/structure.png">
+            <img data-no-retina="true" src="https://raw.githubusercontent.com/PJhunag/MyFirstNodeJs/master/structure.png"
+                alt="Projects 01 00@2x 9a5a97084c8e268ae3725d8e03654d1815ae2eb597b59c292ae4d0beffa7b703" data-uploader-id="4"
+                data-state="empty" style="border-radius: 0px;">
+        </a>
+        <figcaption>
+            <p>
+                <br>
+            </p>
+        </figcaption>
+    </figure>
+</div>
+
+
 <p>首次開發node js</p>
 <p>TWSE台灣證券交易所股票爬蟲及前端網頁開發</p>
 <p/>
