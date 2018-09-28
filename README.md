@@ -58,7 +58,7 @@
             </h1>
             <p> crawler\crawler_range.js(區間抓取)</p>
             <p>crawler\crawler_today.js(當日抓取)</p>
-            <p> crawler\read_web.js(爬蟲本體)</p>
+            <p> crawler\read_web.js(爬蟲本體，包含twse上市股票及tpex上櫃股票)</p>
         </div>
     </div>
 </div>
