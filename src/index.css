@@ -54,7 +54,7 @@ background-color: #FFFFFF;
   margin-bottom:5px;
 }
 .card{
-  float: left;
+  float: center;
   height: 10%;
   width: 23%;
   margin-left:10px;

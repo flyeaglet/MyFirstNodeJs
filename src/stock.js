@@ -1,3 +1,4 @@
+//react
 import React, { Component } from 'react';
 import ReactEcharts from 'echarts-for-react';
 import axios from 'axios';
@@ -17,6 +18,13 @@ import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Radio from '@material-ui/core/Radio';
+import Checkbox from '@material-ui/core/Checkbox';
+import Favorite from '@material-ui/icons/Favorite';
+import FavoriteBorder from '@material-ui/icons/FavoriteBorder';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import Button from '@material-ui/core/Button';
 
 //先準備相關資訊
 var instance = axios.create({
@@ -44,8 +52,6 @@ var line_chart_list = {
 
 //預設action 
 var stock_no = "";
-//var selected_page_desc = '收盤價歷史紀錄'; //所在頁面說明
-//var selected_page = 'getStockPrices'; //所在頁面(預設為價格頁)
 
 //取得股票清單
 var stock_list = [];
@@ -206,6 +212,9 @@ class Stock extends Component {
       open2: false,
       open3: false,
       line_chart_list: line_chart_list,
+      msg_open: false, //跳窗提示
+      msg: "", //跳窗訊息
+      favorited: false, //是否添加至我的最愛
     }
 
     var url = "/getStock/list/ALL";
@@ -281,7 +290,7 @@ class Stock extends Component {
       stock_no = ls_tmp.substr(0, ls_tmp.indexOf("(", 0));
     }
     var new_list;
-    console.log("this.props.name:"+this.props.name);
+    console.log("this.props.name:" + this.props.name);
     switch (type) {
       case 'getStockPrices':
         //取得價格資訊
@@ -310,6 +319,37 @@ class Stock extends Component {
     this.forceUpdate();
   }
 
+  //點選確認後關閉
+  msg_close = () => {
+    this.setState(state => ({ msg_open: false }));
+  };
+
+  //改變收藏狀態
+  setFavorite = (event, checked) => {
+    if (this.props.user === "None") { 
+      //判斷是否已登入
+      this.setState(state => ({ msg_open: true, favorited: false, msg: "請先登入系統後再重新添加至我的最愛!" }));
+    }
+    else if (stock_no === "") {
+      //判斷是否已挑股票
+      this.setState(state => ({ msg_open: true, favorited: false, msg: "請先挑選股票後再重新添加至我的最愛!" }));
+    }
+    else {
+      //改變畫面狀態
+      this.setState(state => ({ favorited: !this.state.favorited }));
+
+      var myfavorite = require('./favorite.js')
+      if (this.state.favorited == !true) {
+        //呼叫添加
+        myfavorite.insertFavorite(this.props.user, stock_no);
+      }
+      else {
+        //呼叫刪除
+        myfavorite.deleteFavorite(this.props.user, stock_no);
+      }
+    }
+  };
+
   render() {
     const { classes } = this.props;
     return (
@@ -329,6 +369,8 @@ class Stock extends Component {
             onInputChange={this.handleChange_no_edit}
             native="true"
           />
+          <FormControlLabel control={<Checkbox icon={<FavoriteBorder />} checkedIcon={<Favorite />} checked={this.state.favorited} />}
+            label="收藏" onChange={this.setFavorite} />
           <p />
           查詢區間
             <Grid item xs={12}>
@@ -354,6 +396,12 @@ class Stock extends Component {
             style={{ height: '400px', width: '95%' }}
             className='react_for_echarts' />
         </div>
+        <Dialog open={this.state.msg_open} aria-labelledby="form-dialog-title" >
+          <DialogTitle id="form-dialog-title">{this.state.msg}</DialogTitle>
+          <DialogActions>
+            <Button onClick={this.msg_close} color="primary">確認</Button>
+          </DialogActions>
+        </Dialog>
       </div>
     )
   }

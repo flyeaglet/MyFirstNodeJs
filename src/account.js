@@ -271,10 +271,13 @@ class Account extends Component {
     logout = () => {
         //紀錄登入狀態與資訊
         user_info.logined = false; //未登入
-        user_info.account = "";
+        user_info.account = "None";
 
         //重整login logout按鈕
         this.setState(state => ({ login_disable: false, logout_disable: true }));
+
+        //回傳使用者資訊給上層
+        this.props.setUser("None");
     };
 
     render() {

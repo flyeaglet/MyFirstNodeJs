@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-var url_server = "http://122.117.34.101:8000/";
+var url_server = "http://localhost:8000/";
 
 function option() {
     this.type = {

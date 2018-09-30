@@ -18,7 +18,7 @@ import Collapse from '@material-ui/core/Collapse';
 import List from '@material-ui/core/List';
 import Toolbar from '@material-ui/core/Toolbar';
 import AppBar from '@material-ui/core/AppBar';
- 
+
 //Module variable
 const styles = theme => ({
   flex: {
@@ -35,7 +35,9 @@ class Main extends Component {
       open3: false,
       choice_name: 'getStockPrices', //stockPrices,tradingVolume
       choice_desc: '股票收盤價紀錄',
-      user: "", //使用者ID
+      user: "None", //使用者ID,
+      show_stock: true, //顯示股票頁
+      show_favorite: false, //顯示我的最愛
     }
   }
 
@@ -56,17 +58,26 @@ class Main extends Component {
 
   handleChange_getStockPrices = () => {
     //呼叫並且刷新主要區塊(右下)
-    this.setState(state => ({choice_name:'getStockPrices',choice_desc:'股票收盤價紀錄'}));
+    this.setState(state => ({choice_name:'getStockPrices',choice_desc:'股票收盤價紀錄',show_stock:true,show_favorite:false}));
 
   }
 
   handleChange_getTradingVolume = () => {
     //呼叫並且刷新主要區塊(右下)
-    this.setState(state => ({choice_name:'getTradingVolume',choice_desc:'股票成交量紀錄'}));
+    this.setState(state => ({choice_name:'getTradingVolume',choice_desc:'股票成交量紀錄',show_stock:true,show_favorite:false}));
   }
+
+  handleChange_getMyFavorite = () => {
+    //呼叫並且刷新主要區塊(右下)
+    //顯示我的最愛區塊
+    //隱藏其他區塊
+    this.setState(state => ({show_stock:false,show_favorite:true}));
+  }
+
 
   setUser = user_id => {
     this.setState(state => ({user:user_id}));
+    console.log("this.state.user:"+this.state.user)
   }
   
   render() {
@@ -135,7 +146,7 @@ class Main extends Component {
           </ListItem>
           <Collapse in={this.state.open2} timeout="auto" unmountOnExit>
             <List className="sub_button" component="div" disablePadding>
-              <ListItem button onClick={this.handleClick}>
+              <ListItem button onClick={this.handleChange_getMyFavorite}>
                 <ListItemIcon>
                   <FavoriteIcon />
                 </ListItemIcon>
@@ -179,8 +190,8 @@ class Main extends Component {
           </Collapse>
         </div>
 
-        {false && <Stock name={this.state.choice_name} desc={this.state.choice_desc} user={this.state.user} />}
-        <Favorite name={this.state.choice_name} desc={this.state.choice_desc} user={this.state.user} />
+        {this.state.show_stock && <Stock name={this.state.choice_name} desc={this.state.choice_desc} user={this.state.user} />}
+        {this.state.show_favorite && <Favorite user={this.state.user} />}
 
       </div>
     )

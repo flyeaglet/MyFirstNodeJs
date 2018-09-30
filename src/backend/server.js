@@ -441,6 +441,7 @@ app.post('/login', function (request, response) { //註冊帳號
 
     //取得訊息
     var body = request.body.msg;
+    console.log("body:" + body)
 
     //還原
     var j_body = msgdecoder(body);
@@ -474,6 +475,127 @@ app.post('/login', function (request, response) { //註冊帳號
         }
     });
 
+})
+
+app.post('/setFavorite', function (request, response) { //添加/刪除我的最愛
+    console.log("Request:setFavorite");
+
+    //取得訊息
+    var infos = request.body;
+
+    //準備寫入或刪除
+    var account = infos.account; //帳號
+    var stock = infos.stock; //股票代碼
+    var action = infos.action; //行為-insert/delete
+
+    console.log(account + ":" + stock + ":" + action)
+
+    var today = new Date()
+    var favorite_info = {
+        fvrt001: account,
+        fvrt002: stock,
+        fvrt003: today
+    };
+
+    if (action == "insert") {
+        connection.query("INSERT INTO stock.fvrt_t SET ?", favorite_info, function (error, rows, fields) {
+            //檢查是否有錯誤
+            var res;
+            if (error) {
+                throw error;
+                console.log("我的最愛添加異常" + error + "，帳號" + infos.account + "，我的最愛" + stock);
+            }
+            else {
+
+            }
+        });
+    }
+    else {
+        connection.query("DELETE FROM stock.fvrt_t WHERE fvrt001 = ? AND fvrt002 = ?", [account, stock], function (error, rows, fields) {
+            //檢查是否有錯誤
+            var res;
+            if (error) {
+                throw error;
+                console.log("我的最愛清除異常" + error + "，帳號" + infos.account + "，我的最愛" + stock);
+            }
+            else {
+
+            }
+        });
+    }
+
+    response.end();
+})
+
+app.post('/getFavorite', function (request, response) { //取得我的最愛清單
+    console.log("Request:getFavorite");
+
+    //取得訊息
+    var infos = request.body;
+
+    //取得帳號
+    var account = infos.account; //帳號
+
+    //取出twse001 代碼,name003 說明,twse007 收盤價,twse008 漲幅,percent 漲幅百分比
+    var ls_sql = "SELECT twse001,name003,twse007,twse008,ROUND(twse008/twse007*100,2) percent  FROM stock.twse_t " +
+        "INNER JOIN stock.fvrt_t ON fvrt001 = ? AND twse001 = fvrt002 AND twse002 = (select max(twse002) from stock.twse_t) " +
+        "LEFT JOIN name_t ON name001 = twse001 AND name002 = 'zh_TW'"
+
+    var list = []
+    connection.query(ls_sql, [account], function (error, rows, fields) {
+        //檢查是否有錯誤
+        if (error) {
+            throw error;
+            console.log("我的最愛添加異常" + error + "，帳號" + infos.user + "，我的胃愛" + stock);
+            response.end();
+        }
+        else {
+            for (var i = 0; i < rows.length; i++) {
+                id      = rows[i].twse001;
+                name    = rows[i].name003;
+                price   = rows[i].twse007;
+                fluct   = rows[i].twse008;
+                percent = rows[i].percent;
+                list.push({ id: id, name: name, price: price , fluct: fluct , percent: percent  });
+            }
+            response.end(JSON.stringify(list));
+            console.log("getFavorite:success return!")
+        }
+    });
+
+})
+
+app.post('/chkFavorite', function (request, response) { //確認是否為我的最愛
+    console.log("Request:chkFavorite");
+
+    //取得訊息
+    var body = request.body.msg;
+
+    //轉為json物件
+    var infos = JSON.parse(j_body);
+
+    //檢核是否已添加至我的最愛
+    var user = infos.user; //帳號
+    var stock = infos.stock; //股票代碼
+
+    var rb_return = false;
+
+    connection.query("SELECT COUNT(1) cnt FROM stock.fvrt_t WHERE fvrt001 = ? AND fvrt002 = ?", [user, stock], function (error, rows, fields) {
+        //檢查是否有錯誤
+        var res;
+        if (error) {
+            throw error;
+            console.log("我的最愛檢核異常" + error + "，帳號" + infos.user + "，我的最愛" + stock);
+        }
+        else {
+            if (rows[0].cnt == 0)
+                rb_return = false; //已存在
+            else
+                rb_return = true; //不存在
+        }
+    });
+
+    response.end(rb_return);
 })
 
 app.listen(8000)
