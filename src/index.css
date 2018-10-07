@@ -55,7 +55,6 @@ background-color: #FFFFFF;
 }
 .card{
   width: 100%;
-  margin-left:10px;
-  margin-right:10px;
-  background-color: rgb(56, 107, 211);
+  height: 250px;
+  background-color: rgb(116, 158, 241);
 }

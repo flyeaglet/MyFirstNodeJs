@@ -31,6 +31,7 @@ var instance = axios.create({
   baseURL: 'http://localhost:8000'
 });
 var getInfos = require('./getStockInfo.js')
+var getFavotie = require('./favorite.js')
 
 //Module variable
 var line_chart_list = {
@@ -251,12 +252,17 @@ class Stock extends Component {
     });
   }
 
-  handleChange_no(event) {
+  async handleChange_no(event) {
     // event.target 是當前的 DOM elment
     // 從 event.target.value 取得 user 剛輸入的值
     // 將 user 輸入的值更新回 state
     stock_no = event.label;
-    this.handleChange_show_chart(this.props.name);
+    this.handleChange_show_chart(this.props.name); //顯示圖表
+    var chkfvrt = await getFavotie.checkFavorite(this.props.user,stock_no);
+    this.state.favorited = chkfvrt; //檢核是否已加入我的最愛
+    //console.log("this.state.favorited:"+this.state.favorited)
+    //console.log("chkfcrt:"+chkfvrt+",type"+typeof(chkfvrt))
+    this.setState(state => ({ favorited: chkfvrt }));
   }
 
   handleChange_type = key => (event, value) => {

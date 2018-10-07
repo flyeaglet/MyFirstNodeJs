@@ -32,7 +32,7 @@ export async function insertFavorite(account, stock_no) {
     }
 }
 
-export function deleteFavorite(account, stock_no) {
+export async function deleteFavorite(account, stock_no) {
     console.log('deleteFavorite!')
 
     //呼叫server刪除我的最愛
@@ -50,6 +50,38 @@ export function deleteFavorite(account, stock_no) {
         console.log(e.status); // undefined
         console.log(e.code); // undefined
     }
+}
+
+export async function checkFavorite(account, stock_no) {
+    console.log('checkFavorite!')
+    console.log("account:" + account)
+    console.log("stock_no:" + stock_no)
+
+    //呼叫server檢核我的最愛
+    var url = url_server + "chkFavorite";
+    console.log("url:" + url)
+
+    var msg = { account: account, stock: stock_no };
+
+    try {
+        var response = await axios.post(url, msg);
+    }
+    catch (e) {
+        console.log(e); // Network Error
+        console.log(e.status); // undefined
+        console.log(e.code); // undefined
+    }
+
+    //承接回傳資訊(已存在/不存在)
+    var chk = response.data;
+/*     if (chk == "true") {
+        var rtn = true;
+    }
+    else {
+        var rtn = false;
+    } */
+    console.log("chk:"+chk)
+    return chk;
 }
 
 export async function getFavoriteCards(account) {
@@ -79,18 +111,32 @@ export async function getFavoriteCards(account) {
     var stockList = []; //reset
 
     for (var i = 0; i < list.length; i++) {
+        //判斷漲跌
+        if (list[i].fluct < 0) {
+            //跌價
+            var change_symbol = "▼"
+            var change_color = "green"
+        }
+        else {
+            //漲價
+            var change_symbol = "▲"
+            var change_color = "red"
+        }
         var newStock =
-
             <GridListTile>
                 <Card >
-                    <CardActionArea >
+                    <CardActionArea className="card">
                         <CardContent className="card">
                             <Typography variant="display1" color="textSecondary" >
-                                {list[i].name}  <font size="5">{list[i].id}</font>
+                                {list[i].name}  <font size="5">({list[i].id})</font>
                             </Typography>
-                            <Typography variant="display1" component="h2" align="center">{list[i].price}</Typography>
+                            <Typography variant="display2" component="h2" align="center">{list[i].price}</Typography>
                             <br />
-                            <Typography color="textSecondary" align="center">▼ {list[i].fluct}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼ {list[i].percent}%</Typography>
+                            <Typography variant="headline" color="textSecondary" align="center">
+                                <font color={change_color}>{change_symbol} {list[i].fluct}
+                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                {change_symbol} {list[i].percent}%</font>
+                            </Typography>
                         </CardContent>
                     </CardActionArea>
                 </Card>
@@ -107,7 +153,7 @@ export async function getFavoriteCards(account) {
 
     //組合外框與內容(Grid外框與內框+cards)
     stockList =
-        <div >
+        <div>
             <GridList cols={3}>
                 {stockList}
             </GridList>

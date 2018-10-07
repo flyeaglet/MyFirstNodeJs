@@ -551,12 +551,12 @@ app.post('/getFavorite', function (request, response) { //取得我的最愛清�
         }
         else {
             for (var i = 0; i < rows.length; i++) {
-                id      = rows[i].twse001;
-                name    = rows[i].name003;
-                price   = rows[i].twse007;
-                fluct   = rows[i].twse008;
+                id = rows[i].twse001;
+                name = rows[i].name003;
+                price = rows[i].twse007;
+                fluct = rows[i].twse008;
                 percent = rows[i].percent;
-                list.push({ id: id, name: name, price: price , fluct: fluct , percent: percent  });
+                list.push({ id: id, name: name, price: price, fluct: fluct, percent: percent });
             }
             response.end(JSON.stringify(list));
             console.log("getFavorite:success return!")
@@ -569,33 +569,33 @@ app.post('/chkFavorite', function (request, response) { //確認是否為我的�
     console.log("Request:chkFavorite");
 
     //取得訊息
-    var body = request.body.msg;
+    var infos = request.body;
 
-    //轉為json物件
-    var infos = JSON.parse(j_body);
-
-    //檢核是否已添加至我的最愛
-    var user = infos.user; //帳號
+    //準備寫入或刪除
+    var account = infos.account; //帳號
     var stock = infos.stock; //股票代碼
+    console.log("我的最愛檢核，帳號" + account + "股票代碼" + stock)
+    //var action = infos.action; //行為-insert/delete/check
 
-    var rb_return = false;
+    var r_return = "false";
 
-    connection.query("SELECT COUNT(1) cnt FROM stock.fvrt_t WHERE fvrt001 = ? AND fvrt002 = ?", [user, stock], function (error, rows, fields) {
+    connection.query("SELECT COUNT(1) cnt FROM stock.fvrt_t WHERE fvrt001 = ? AND fvrt002 = ?", [account, stock], function (error, rows, fields) {
         //檢查是否有錯誤
         var res;
         if (error) {
             throw error;
-            console.log("我的最愛檢核異常" + error + "，帳號" + infos.user + "，我的最愛" + stock);
+            console.log("我的最愛檢核異常" + error + "，帳號" + infos.account + "股票代碼" + stock);
         }
         else {
-            if (rows[0].cnt == 0)
-                rb_return = false; //已存在
-            else
-                rb_return = true; //不存在
+            console.log("我的最愛檢核，帳號" + infos.account + "股票代碼" + stock);
+            if (rows[0].cnt == 1) {
+                r_return = "true"; //已存在
+            }
+            console.log("Return:" + r_return)
+            response.end(r_return);
         }
     });
 
-    response.end(rb_return);
 })
 
 app.listen(8000)
