@@ -54,11 +54,8 @@ background-color: #FFFFFF;
   margin-bottom:5px;
 }
 .card{
-  float: center;
-  height: 10%;
-  width: 23%;
+  width: 100%;
   margin-left:10px;
   margin-right:10px;
-  margin-bottom:10px;
-  background-color: rgb(191, 211, 252);
+  background-color: rgb(56, 107, 211);
 }

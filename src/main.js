@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import Stock from './stock'; //股票區塊
 import Account from './account'; //帳號區塊
-import Favorite from './favorite'; //我的最愛區塊
 
 //material-ui
 import { withStyles } from "@material-ui/core/styles";
@@ -26,6 +25,8 @@ const styles = theme => ({
   },
 });
 
+var getFvrt = require('./favorite.js');
+
 class Main extends Component {
   constructor() {
     super()
@@ -38,7 +39,9 @@ class Main extends Component {
       user: "None", //使用者ID,
       show_stock: true, //顯示股票頁
       show_favorite: false, //顯示我的最愛
+      favorite: <div>favorite</div>,
     }
+    this.handleChange_getMyFavorite = this.handleChange_getMyFavorite.bind(this); //favorite
   }
 
   //下拉展開(股票資訊)
@@ -67,11 +70,13 @@ class Main extends Component {
     this.setState(state => ({choice_name:'getTradingVolume',choice_desc:'股票成交量紀錄',show_stock:true,show_favorite:false}));
   }
 
-  handleChange_getMyFavorite = () => {
+  async handleChange_getMyFavorite(){
     //呼叫並且刷新主要區塊(右下)
     //顯示我的最愛區塊
     //隱藏其他區塊
-    this.setState(state => ({show_stock:false,show_favorite:true}));
+    var fvrt = await getFvrt.getFavoriteCards(this.state.user);
+    this.setState(state => ({show_stock:false,show_favorite:true,favorite:fvrt}));
+
   }
 
 
@@ -191,7 +196,7 @@ class Main extends Component {
         </div>
 
         {this.state.show_stock && <Stock name={this.state.choice_name} desc={this.state.choice_desc} user={this.state.user} />}
-        {this.state.show_favorite && <Favorite user={this.state.user} />}
+        {this.state.show_favorite && this.state.favorite}
 
       </div>
     )

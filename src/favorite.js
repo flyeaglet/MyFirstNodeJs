@@ -1,22 +1,14 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { withStyles } from '@material-ui/core/styles';
+
 import Card from '@material-ui/core/Card';
 import CardActionArea from '@material-ui/core/CardActionArea';
 import CardContent from '@material-ui/core/CardContent';
 import Typography from '@material-ui/core/Typography';
 import axios from 'axios';
+import GridList from '@material-ui/core/GridList';
+import GridListTile from '@material-ui/core/GridListTile';
 
 var url_server = 'http://localhost:8000/'; //server ip
-
-const styles = {
-    card: {
-        width: '16%',
-        display: 'inline-block',
-    },
-};
-
-var stockList = [];
 
 export async function insertFavorite(account, stock_no) {
     console.log('insertFavorite!')
@@ -60,7 +52,7 @@ export function deleteFavorite(account, stock_no) {
     }
 }
 
-async function getFavorite(account) {
+export async function getFavoriteCards(account) {
     console.log('getFavorite!')
 
     //取得我的最愛清單資訊
@@ -84,16 +76,17 @@ async function getFavorite(account) {
     var list = response.data;
 
     //定義框架
-    stockList = []; //reset
+    var stockList = []; //reset
 
     for (var i = 0; i < list.length; i++) {
         var newStock =
-            <div >
+
+            <GridListTile>
                 <Card >
-                    <CardActionArea>
-                        <CardContent>
-                            <Typography variant="display2" color="textSecondary" >
-                            {list[i].name}  <font size="5">{list[i].id}</font>
+                    <CardActionArea >
+                        <CardContent className="card">
+                            <Typography variant="display1" color="textSecondary" >
+                                {list[i].name}  <font size="5">{list[i].id}</font>
                             </Typography>
                             <Typography variant="display1" component="h2" align="center">{list[i].price}</Typography>
                             <br />
@@ -101,32 +94,26 @@ async function getFavorite(account) {
                         </CardContent>
                     </CardActionArea>
                 </Card>
-            </div>
+            </GridListTile>
+
         await stockList.push(newStock);
-        console.log("list[i].id:"+list[i].id);
-        console.log("list[i].name:"+list[i].name);
-        console.log("list[i].price:"+list[i].price);
-        console.log("list[i].fluct:"+list[i].fluct);
-        console.log("list[i].percent:"+list[i].percent);
+        console.log("list[i].id:" + list[i].id);
+        console.log("list[i].name:" + list[i].name);
+        console.log("list[i].price:" + list[i].price);
+        console.log("list[i].fluct:" + list[i].fluct);
+        console.log("list[i].percent:" + list[i].percent);
         console.log("---------------------------------");
     }
 
-    return 'success'
+    //組合外框與內容(Grid外框與內框+cards)
+    stockList =
+        <div >
+            <GridList cols={3}>
+                {stockList}
+            </GridList>
+        </div>
+    //await stockList.push(grid_list); 
+
+    return stockList;
+
 }
-
-
-function Favorite(props) {
-    const { classes } = props;
-    var chk = getFavorite(props.user);
-    
-    console.log("return:"+chk) 
-    return (
-        stockList
-    );
-}
-
-Favorite.propTypes = {
-    classes: PropTypes.object.isRequired,
-};
-
-export default withStyles(styles)(Favorite);
